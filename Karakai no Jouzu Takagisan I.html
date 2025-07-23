@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Reproductor de Video desde Firebase</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    /* Mismo diseño que tu ejemplo */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Arial', sans-serif;
+      background: url(https://static.wixstatic.com/media/8a7da0_da693a5c2b2d42bbb084707197421b0a~mv2.png);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .container {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+      max-width: 90%;
+      width: 800px;
+      position: relative;
+    }
+    .video-container {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+      margin-bottom: 20px;
+    }
+    .controls {
+  position: absolute;
+  top: 55px; /* Debajo del botón */
+  left: 10px;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 10px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  z-index: 20;
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+}
+
+    .control-btn {
+      background: #003a73;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 50px;
+      cursor: pointer;
+      margin: 5px;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+    .control-btn:hover {
+      background: #0099cc;
+      transform: scale(1.05);
+    }
+    .toggle-btn,
+    .episode-selector {
+      position: absolute;
+      top: 10px;
+      background: #003a73;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 50px;
+      font-weight: bold;
+      cursor: pointer;
+      z-index: 20;
+    }
+    .toggle-btn { left: 10px; }
+    .episode-selector { right: 10px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <button class="toggle-btn" onclick="toggleControls()">OPCIONES DE VIDEO</button>
+    <select class="episode-selector" onchange="selectEpisode(this.value)"></select>
+    <div style="display: flex; justify-content: center; gap: 20px; margin: 10px 0;">
+      <button onclick="previousEpisode()" class="control-btn">⏪ Anterior</button>
+      <button onclick="nextEpisode()" class="control-btn">Siguiente ⏩</button>
+    </div>
+    <div class="controls" id="controls" style="display:none;"></div>
+    <div class="video-container" id="videoContainer"></div>
+  </div>
+ <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+  <script>
+    // CONFIGURA TU FIREBASE AQUÍ
+    const firebaseConfig = {
+      apiKey: "AIzaSyB6MY2y5uyum87PdUHUpY8NNh4D73Yhx4U",
+      authDomain: "animes-plus-89b93.firebaseapp.com",
+      projectId: "animes-plus-89b93",
+      storageBucket: "animes-plus-89b93.appspot.com",
+      messagingSenderId: "402867181985",
+      appId: "1:402867181985:web:d695b12977fe4270dbd3e0",
+      measurementId: "G-DN632G7XJT"
+    };
+
+    // Definición fija del entorno del reproductor
+    const nombreSerie = "Karakai no Jouzu Takagisan";
+    const temporada = "Temporada 01";
+    const idioma = "Sub Español";
+
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    let episodios = [];
+    let currentEpisode = 0;
+
+    async function cargarEpisodiosDesdeFirebase() {
+      const episodiosSnapshot = await db
+        .collection("animes-series")
+        .doc(nombreSerie)
+        .collection("Temporadas")
+        .doc(temporada)
+        .collection("Idiomas")
+        .doc(idioma)
+        .collection("Servidores")
+        .get();
+
+      episodios = [];
+
+      for (const servidorDoc of episodiosSnapshot.docs) {
+        const servidor = servidorDoc.id;
+        const epsSnapshot = await db
+          .collection("animes-series")
+          .doc(nombreSerie)
+          .collection("Temporadas")
+          .doc(temporada)
+          .collection("Idiomas")
+          .doc(idioma)
+          .collection("Servidores")
+          .doc(servidor)
+          .collection("Episodios")
+          .get();
+
+        epsSnapshot.forEach(doc => {
+          const nombreEp = doc.id;
+          const iframe = doc.data().iframe;
+
+          let episodio = episodios.find(e => e.name === nombreEp);
+          if (!episodio) {
+            episodio = { name: nombreEp, embeds: {} };
+            episodios.push(episodio);
+          }
+
+          episodio.embeds[servidor] = iframe;
+        });
+      }
+
+      episodios.sort((a, b) => a.name.localeCompare(b.name, 'es', { numeric: true }));
+      renderEpisodeSelector();
+      renderControls();
+      const firstPlatform = Object.keys(episodios[0].embeds)[0];
+      changeVideo(firstPlatform);
+    }
+
+   function toggleControls() {
+  const controls = document.getElementById('controls');
+  controls.style.display = controls.style.display === 'none' ? 'flex' : 'none';
+}
+
+    function renderControls() {
+      const controls = document.getElementById('controls');
+      controls.innerHTML = '';
+      const current = episodios[currentEpisode];
+      for (const plataforma in current.embeds) {
+        const btn = document.createElement('button');
+        btn.className = 'control-btn';
+        btn.innerText = plataforma;
+        btn.onclick = () => changeVideo(plataforma);
+        controls.appendChild(btn);
+      }
+    }
+
+    function renderEpisodeSelector() {
+      const selector = document.querySelector('.episode-selector');
+      selector.innerHTML = '';
+      episodios.forEach((ep, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = ep.name;
+        selector.appendChild(option);
+      });
+      selector.value = currentEpisode;
+    }
+
+    function selectEpisode(index) {
+      currentEpisode = parseInt(index);
+      renderControls();
+      const firstPlatform = Object.keys(episodios[currentEpisode].embeds)[0];
+      changeVideo(firstPlatform);
+    }
+
+    function nextEpisode() {
+      if (currentEpisode < episodios.length - 1) {
+        currentEpisode++;
+        document.querySelector('.episode-selector').value = currentEpisode;
+        selectEpisode(currentEpisode);
+      }
+    }
+
+    function previousEpisode() {
+      if (currentEpisode > 0) {
+        currentEpisode--;
+        document.querySelector('.episode-selector').value = currentEpisode;
+        selectEpisode(currentEpisode);
+      }
+    }
+
+    function changeVideo(plataforma) {
+      const videoContainer = document.getElementById('videoContainer');
+      const embed = episodios[currentEpisode].embeds[plataforma];
+      videoContainer.innerHTML = embed;
+    }
+
+    // Cargar episodios al iniciar
+    cargarEpisodiosDesdeFirebase();
+  </script>
+</body>
+</html>

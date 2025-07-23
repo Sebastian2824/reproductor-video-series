@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar Sesión</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Arial, sans-serif;
+    }
+
+    body {
+      background-color: #f0f4f8;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-image: radial-gradient(circle at 10% 20%, rgba(13, 71, 161, 0.05) 0%, rgba(13, 71, 161, 0.05) 90%);
+    }
+
+    .login-container {
+      width: 100%;
+      max-width: 420px;
+      background-color: white;
+      border-radius: 20px;
+      box-shadow: 0 15px 30px rgba(13, 71, 161, 0.15);
+      overflow: hidden;
+      margin: 20px;
+    }
+
+    .login-header {
+      background-color: #0d47a1; /* Azul oscuro principal */
+      color: white;
+      text-align: center;
+      padding: 30px 20px;
+      position: relative;
+    }
+
+    .login-header h1 {
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .login-header p {
+      opacity: 0.9;
+      font-size: 14px;
+    }
+
+    .logo {
+      width: 80px;
+      height: 80px;
+      background-color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 15px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .logo i {
+      color: #0d47a1; /* Azul oscuro principal */
+      font-size: 40px;
+    }
+
+    .login-body {
+      padding: 30px;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .input-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #1565c0; /* Azul un poco más claro */
+      font-weight: 500;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 14px 15px;
+      border: 2px solid #e1f5fe;
+      border-radius: 10px;
+      font-size: 16px;
+      transition: all 0.3s;
+      background-color: #f5f9ff;
+    }
+
+    .input-group input:focus {
+      border-color: #0d47a1;
+      box-shadow: 0 0 0 3px rgba(13, 71, 161, 0.2);
+      outline: none;
+      background-color: white;
+    }
+
+    .input-group i {
+      position: absolute;
+      right: 15px;
+      top: 42px;
+      color: #0d47a1;
+      opacity: 0.7;
+    }
+
+    .remember-forgot {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+      font-size: 14px;
+    }
+
+    .remember-me {
+      display: flex;
+      align-items: center;
+    }
+
+    .remember-me input {
+      margin-right: 8px;
+      accent-color: #0d47a1;
+    }
+
+    .forgot-password a {
+      color: #1565c0;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: 14px;
+      background-color: #0d47a1;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 4px 10px rgba(13, 71, 161, 0.3);
+      margin-bottom: 20px;
+    }
+
+    .login-btn:hover {
+      background-color: #0b3d91;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(13, 71, 161, 0.4);
+    }
+
+    .login-btn:active {
+      transform: translateY(0);
+    }
+
+    .social-login {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .social-login p {
+      color: #666;
+      margin-bottom: 15px;
+      position: relative;
+    }
+
+    .social-login p::before,
+    .social-login p::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      width: 30%;
+      height: 1px;
+      background-color: #e1f5fe;
+    }
+
+    .social-login p::before {
+      left: 0;
+    }
+
+    .social-login p::after {
+      right: 0;
+    }
+
+    .social-icons {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    .social-icon {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #e3f2fd;
+      color: #0d47a1;
+      font-size: 20px;
+      transition: all 0.3s;
+    }
+
+    .social-icon:hover {
+      background-color: #0d47a1;
+      color: white;
+      transform: translateY(-3px);
+    }
+
+    .register-link {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 14px;
+    }
+
+    .register-link a {
+      color: #1565c0;
+      font-weight: 500;
+      text-decoration: none;
+    }
+
+    @media (max-width: 480px) {
+      .login-header {
+        padding: 25px 15px;
+      }
+      
+      .login-body {
+        padding: 25px 20px;
+      }
+      
+      .logo {
+        width: 70px;
+        height: 70px;
+      }
+    }
+  </style>
+  <!-- Iconos de Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-header">
+      <div class="logo">
+        <i class="fas fa-film"></i>
+      </div>
+      <h1>Bienvenido</h1>
+      <p>Inicia sesión en tu cuenta</p>
+    </div>
+    
+    <div class="login-body">
+      <form>
+        <div class="input-group">
+          <label for="correo">Correo</label>
+          <input type="text" id="correo" placeholder="Ingresa tu correo electrónico">
+          <i class="fas fa-user"></i>
+        </div>
+        
+        <div class="input-group">
+          <label for="password">Contraseña</label>
+          <input type="password" id="password" placeholder="Ingresa tu contraseña">
+          <i class="fas fa-lock"></i>
+        </div>
+        
+        <div class="remember-forgot">
+          <div class="remember-me">
+            <input type="checkbox" id="remember">
+            <label for="remember">Recordarme</label>
+          </div>
+          <div class="forgot-password">
+            <a href="#">¿Olvidaste tu contraseña?</a>
+          </div>
+        </div>
+        
+        <button type="button" class="login-btn">Iniciar Sesión</button>
+        
+      </form>
+    </div>
+  </div>
+
+  <!-- Ventana flotante -->
+<div id="ventana-recuperacion" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); justify-content: center; align-items: center; z-index: 9999;">
+  <div style="background-color: white; padding: 30px; border-radius: 15px; max-width: 400px; width: 90%;">
+    <h2 style="margin-bottom: 20px; color: #1a73e8;">Recuperar Contraseña</h2>
+    <input id="recuperar-correo" type="text" placeholder="Correo electrónico" style="width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #ccc;">
+    <input id="recuperar-fecha" type="text" placeholder="Fecha de nacimiento (DD/MM/AAAA)" style="width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #ccc;">
+    <input id="nueva-password" type="password" placeholder="Nueva contraseña" style="width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 8px; border: 1px solid #ccc;">
+    <button id="btn-actualizar-password" style="background-color: #1a73e8; color: white; padding: 12px; width: 100%; border: none; border-radius: 8px; font-weight: bold;">Actualizar Contraseña</button>
+    <button onclick="document.getElementById('ventana-recuperacion').style.display = 'none'" style="margin-top: 10px; padding: 8px 12px; border: none; background-color: transparent; color: #555;">Cancelar</button>
+  </div>
+</div>
+
+  <!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<script>
+  // Configura tu Firebase
+  const firebaseConfig = {
+      apiKey: "AIzaSyB6MY2y5uyum87PdUHUpY8NNh4D73Yhx4U",
+      authDomain: "animes-plus-89b93.firebaseapp.com",
+      projectId: "animes-plus-89b93",
+      storageBucket: "animes-plus-89b93.appspot.com",
+      messagingSenderId: "402867181985",
+      appId: "1:402867181985:web:d695b12977fe4270dbd3e0",
+      measurementId: "G-DN632G7XJT"
+    };
+
+  // Inicializa Firebase
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+   // Espera a que cargue todo el DOM
+  window.onload = () => {
+    document.querySelector('.login-btn').addEventListener('click', async () => {
+      const correo = document.getElementById('correo').value.trim();
+      const password = document.getElementById('password').value.trim();
+
+      if (!correo || !password) {
+        alert("Por favor completa todos los campos.");
+        return;
+      }
+
+      try {
+        const snapshot = await db.collection('usuarios')
+          .where('correo', '==', correo)
+          .where('contraseña', '==', password)
+          .get();
+
+        if (!snapshot.empty) {
+          alert("Inicio de sesión exitoso");
+          const userId = snapshot.docs[0].id;
+          localStorage.setItem("usuarioId", userId);
+          window.location.href = "Menu_Principal.html"; // o tu interfaz deseada
+        } else {
+          alert("Correo o contraseña incorrectos.");
+        }
+      } catch (error) {
+        console.error("Error al iniciar sesión:", error);
+        alert("Error al iniciar sesión. Inténtalo más tarde.");
+      }
+    });
+  };
+
+  // Mostrar ventana flotante al hacer clic en ¿Olvidaste tu contraseña?
+document.querySelector('.forgot-password a').addEventListener('click', (e) => {
+  e.preventDefault();
+  document.getElementById('ventana-recuperacion').style.display = 'flex';
+});
+
+document.getElementById('btn-actualizar-password').addEventListener('click', async () => {
+  const correo = document.getElementById('recuperar-correo').value.trim();
+  const fecha = document.getElementById('recuperar-fecha').value.trim();
+  const nuevaPassword = document.getElementById('nueva-password').value.trim();
+
+  if (!correo || !fecha || !nuevaPassword) {
+    alert("Por favor completa todos los campos.");
+    return;
+  }
+
+  try {
+    const snapshot = await db.collection('usuarios')
+      .where('correo', '==', correo)
+      .where('fechaNacimiento', '==', fecha)
+      .get();
+
+    if (!snapshot.empty) {
+      const docRef = snapshot.docs[0].ref;
+      await docRef.update({ contraseña: nuevaPassword });
+      alert("Contraseña actualizada correctamente. Ahora puedes iniciar sesión.");
+      document.getElementById('ventana-recuperacion').style.display = 'none';
+      location.reload(); // Reinicia la interfaz
+    } else {
+      alert("Datos incorrectos. Verifica tu correo y fecha de nacimiento.");
+    }
+  } catch (error) {
+    console.error("Error al actualizar contraseña:", error);
+    alert("Hubo un error. Inténtalo más tarde.");
+  }
+});
+</script>
+</body>
+</html>
