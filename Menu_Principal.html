@@ -22,6 +22,35 @@
       font-weight: 700;
       text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
     }
+.header-container {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .header-container h1 {
+      grid-column: 1;
+      justify-self: center;
+      width: 100%;
+      text-align: center;
+    }
+
+    .btn-logout {
+      grid-column: 2;
+      padding: 10px 20px;
+      background-color: #e53e3e;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
 
     .filtros {
       display: flex;
@@ -140,11 +169,30 @@
       .series-grid {
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       }
+
+      .header-container {
+        grid-template-columns: 1fr;
+        gap: 15px;
+      }
+
+      .header-container h1 {
+        grid-column: 1;
+        order: 1;
+      }
+
+      .btn-logout {
+        grid-column: 1;
+        order: 2;
+        justify-self: end;
+      }
     }
-</style>
+  </style>
 </head>
 <body>
-  <h1>Menú Principal de Series</h1>
+  <div class="header-container">
+    <h1>Menú Principal de Series</h1>
+    <a href="index.html" class="btn-logout">Cerrar sesión</a>
+  </div>
 
   <div class="filtros">
     <select id="menuSeries">
