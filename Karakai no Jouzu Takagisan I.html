@@ -361,31 +361,47 @@ function previousEpisode() {
     function changeVideo(servidor) {
   servidorActivo = servidor;
   const videoContainer = document.getElementById('videoContainer');
-  const embed = episodios[currentEpisode].embeds[servidor];
+  const videoDetails = document.getElementById("videoDetails");
 
   // Limpiar contenido anterior
   videoContainer.innerHTML = '';
 
   if (servidor === 'abyss') {
-    // Crear <iframe> manualmente para evitar seguridad de Abyss
-    const temp = document.createElement('div');
-    temp.innerHTML = embed;
-    const iframe = temp.querySelector('iframe');
-    if (iframe) {
-      videoContainer.appendChild(iframe);
-    }
+    // Crear un iframe directamente sin tocar su contenido
+    const iframe = document.getElementById('abyssIframe') || document.createElement('iframe');
+    iframe.id = 'abyssIframe';
+    iframe.style.display = 'block';
+    iframe.style.width = '100%';
+    iframe.style.minHeight = '440px';
+    iframe.style.border = 'none';
+    iframe.setAttribute('allowfullscreen', '');
+    iframe.setAttribute('loading', 'lazy');
+
+    // Insertar sin usar innerHTML ni DOMParser
+    iframe.srcdoc = episodios[currentEpisode].embeds[servidor];
+
+    videoContainer.appendChild(iframe);
   } else {
-    // Insertar directamente si no es Abyss
+    // Otros servidores
+    let embed = episodios[currentEpisode].embeds[servidor];
+
+    if (servidor === 'Tokio Video') {
+      embed = embed.replace(/style="[^"]*max-width:[^";]*;?[^"]*"/gi, '');
+    }
+
     videoContainer.innerHTML = embed;
   }
 
-  // Actualizar detalles del video
-  const videoDetails = document.getElementById("videoDetails");
-  videoDetails.textContent = `${nombreSerie} | ${temporada} | ${episodios[currentEpisode].name} | ${servidor}`;
-
-  renderServerOptions();
-  renderSidebar();
+  // Actualizar detalles
+  if (videoDetails) {
+    videoDetails.textContent = `${nombreSerie} | ${temporada} | ${episodios[currentEpisode].name} | ${servidor}`;
+  }
+  
+  renderServerOptions?.();
+  renderSidebar?.();
 }
+
+
 
 
 function getCustomThumbnailURL(servidor) {
