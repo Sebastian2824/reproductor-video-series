@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Reproductor de Video Multifuncional</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Arial', sans-serif;
+      background: url(https://static.wixstatic.com/media/8a7da0_da693a5c2b2d42bbb084707197421b0a~mv2.png);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      max-width: 90%;
+      width: 800px;
+      position: relative;
+    }
+
+    .video-container {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      position: relative;
+      overflow: hidden;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+      margin-bottom: 20px;
+    }
+
+    .video-frame {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .controls {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      position: absolute;
+      top: 50%;
+      left: 10px;
+      transform: translateY(-50%);
+      background: rgba(255, 255, 255, 0.9);
+      padding: 10px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      z-index: 10;
+    }
+
+    .control-btn {
+      background: #003a73;
+      color: #ffffff;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .control-btn:hover {
+      background: #0099cc;
+      transform: scale(1.05);
+      box-shadow: 0 0 15px rgba(0, 204, 255, 0.5);
+    }
+
+    .toggle-btn {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: #003a73;
+      color: #ffffff;
+      border: none;
+      padding: 10px;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: bold;
+      z-index: 20;
+    }
+
+    .toggle-btn:hover {
+      background: #0099cc;
+      transform: scale(1.1);
+      box-shadow: 0 0 15px rgba(0, 204, 255, 0.5);
+    }
+
+    @media (max-width: 600px) {
+      .controls {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+  <button class="toggle-btn" onclick="toggleControls()">OPCIONES DE VIDEO</button>
+
+  <!-- ✅ AÑADIDO PARA QUE FUNCIONE -->
+  <div class="menu-opciones" id="menu-opciones" style="display: none;">
+    <ul id="lista-servidores"></ul>
+  </div>
+
+  <div class="controls" id="controls"></div>
+  
+  <div class="video-container" id="videoContainer">
+    <iframe id="videoFrame" class="video-frame" src="" frameborder="0" allowfullscreen></iframe>
+  </div>
+</div>
+
+  <script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyB6MY2y5uyum87PdUHUpY8NNh4D73Yhx4U",
+    authDomain: "animes-plus-89b93.firebaseapp.com",
+    projectId: "animes-plus-89b93",
+    storageBucket: "animes-plus-89b93.appspot.com",
+    messagingSenderId: "402867181985",
+    appId: "1:402867181985:web:d695b12977fe4270dbd3e0",
+    measurementId: "G-DN632G7XJT"
+  };
+
+  const nombreSerie = "Karakai no Jouzu Takagisan";
+  const temporada = "Movie 01";
+  const idioma = "Español Latino";
+
+  const app = firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  let servidoresCargados = false;
+  let servidores = {};
+  let currentServer = "";
+  let currentEpisode = "Episodio 01"; // Puedes cambiar esto dinámicamente
+
+  async function toggleControls() {
+    const controls = document.getElementById('controls');
+
+    // Si ya están visibles, ocultamos
+    if (controls.style.display === 'flex') {
+      controls.style.display = 'none';
+      return;
+    }
+
+    // Si ya fue cargado, solo mostramos
+    if (servidoresCargados) {
+      controls.style.display = 'flex';
+      return;
+    }
+
+    try {
+      const servidoresSnapshot = await db
+        .collection("animes-series")
+        .doc(nombreSerie)
+        .collection("Temporadas")
+        .doc(temporada)
+        .collection("Idiomas")
+        .doc(idioma)
+        .collection("Servidores")
+        .get();
+
+      for (const servidorDoc of servidoresSnapshot.docs) {
+        const servidor = servidorDoc.id;
+        const epDoc = await db
+          .collection("animes-series")
+          .doc(nombreSerie)
+          .collection("Temporadas")
+          .doc(temporada)
+          .collection("Idiomas")
+          .doc(idioma)
+          .collection("Servidores")
+          .doc(servidor)
+          .collection("Episodios")
+          .doc(currentEpisode)
+          .get();
+
+        if (epDoc.exists) {
+          servidores[servidor] = epDoc.data().iframe;
+        }
+      }
+
+      renderControls();
+      servidoresCargados = true;
+      controls.style.display = 'flex';
+
+    } catch (error) {
+      console.error("🔥 Error cargando servidores:", error);
+    }
+  }
+
+  function renderControls() {
+    const controls = document.getElementById("controls");
+    controls.innerHTML = '';
+
+    for (const servidor in servidores) {
+      const btn = document.createElement("button");
+      btn.className = "control-btn";
+      btn.textContent = servidor;
+      btn.onclick = () => cambiarServidor(servidor);
+      controls.appendChild(btn);
+    }
+
+    // Carga el primero automáticamente
+    const firstServer = Object.keys(servidores)[0];
+    if (firstServer) cambiarServidor(firstServer);
+  }
+
+  function cambiarServidor(servidor) {
+    const iframeHTML = servidores[servidor];
+    if (iframeHTML) {
+      document.getElementById("videoContainer").innerHTML = iframeHTML;
+      currentServer = servidor;
+    }
+  }
+</script>
+
+</body>
+</html>
