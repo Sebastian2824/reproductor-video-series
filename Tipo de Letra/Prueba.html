@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Series - Letra A</title>
+  
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <style>
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: url(https://static.wixstatic.com/media/8a7da0_da693a5c2b2d42bbb084707197421b0a~mv2.png);
+    padding: 20px;
+    margin: 0;
+  }
+
+  .filtros {
+  background: rgba(255, 255, 255, 0.8);
+  padding: 20px 30px;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+  transition: all 0.3s ease;
+}
+
+.filtros input[type="text"],
+.filtros select {
+  padding: 10px 16px;
+  border-radius: 15px;
+  border: 1px solid #b0d6ff;
+  background-color: #f8fbff;
+  font-size: 16px;
+  color: #014c8c;
+  box-shadow: 0 2px 6px rgba(0, 76, 140, 0.1);
+  transition: box-shadow 0.3s ease, border 0.3s ease;
+  outline: none;
+  width: 280px;
+}
+
+.filtros input[type="text"]:focus,
+.filtros select:focus {
+  border-color: #5c94ff;
+  box-shadow: 0 0 8px rgba(92, 148, 255, 0.4);
+}
+  input[type="text"], select {
+    padding: 8px;
+    width: 280px;
+    margin: 5px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+  }
+
+  .contenedor-cards {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0;
+    margin-top: 40px;
+  }
+
+  .carta-wrapper {
+    width: 500px;
+    margin: 0 20px 40px 20px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .carta-superpuesta {
+    transform: translate(30px, 20px);
+    z-index: 2;
+  }
+
+  .card {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 160px auto;
+    align-items: start;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .card:hover {
+    transform: scale(1.02);
+  }
+
+  .card-imagen {
+    width: 160px;
+    height: 250px;
+    overflow: hidden;
+    border-top-left-radius: 15px;
+    border-bottom-left-radius: 15px;
+    flex-shrink: 0;
+  }
+
+  .card-imagen img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
+  }
+
+  .card-contenido {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    background-color: rgba(255, 255, 255, 0.95);
+    border-top-right-radius: 15px;
+    border-bottom-right-radius: 15px;
+    height: auto;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+  }
+
+  .nombre-id {
+    font-size: 18px;
+    font-weight: bold;
+    color: #002d80;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  .titulo {
+    font-weight: bold;
+    font-size: 16px;
+    color: #014c8c;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  .subtitulo {
+    color: #555;
+    font-size: 14px;
+    margin-bottom: 6px;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  .etiquetas span {
+    display: inline-block;
+    background: #008cff;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 15px;
+    margin: 3px 5px 0 0;
+    font-size: 12px;
+  }
+
+  .boton-ver {
+    background: #5c94ff;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    margin-top: 10px;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+
+  .navegacion-contenedor {
+  background: rgba(255, 255, 255, 0.8);
+  padding: 20px 30px;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin: 40px auto 20px auto;
+  max-width: 600px;
+  display: flex;
+  justify-content: center;
+}
+
+.navegacion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.navegacion button {
+  padding: 10px 24px;
+  font-size: 15px;
+  background: #014c8c;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 76, 140, 0.2);
+}
+
+.navegacion button:hover {
+  background: #0360b2;
+  transform: scale(1.03);
+}
+
+#infoPagina {
+  font-weight: bold;
+  font-size: 16px;
+  color: #002d80;
+}
+
+</style>
+
+</head>
+<body>
+   <div class="filtros">
+    <input type="text" id="buscador" placeholder="Buscar serie por nombre...">
+    <select id="nombreSelector"></select>
+  </div>
+
+  <div class="contenedor-cards" id="cardsContainer"></div>
+
+  <div class="navegacion-contenedor">
+  <div class="navegacion">
+    <button onclick="paginaAnterior()">&#8592; Anterior</button>
+    <span id="infoPagina"></span>
+    <button onclick="paginaSiguiente()">Siguiente &#8594;</button>
+  </div>
+</div>
+
+
+
+  <script>
+   const firebaseConfig = {
+      apiKey: "AIzaSyB6MY2y5uyum87PdUHUpY8NNh4D73Yhx4U",
+      authDomain: "animes-plus-89b93.firebaseapp.com",
+      projectId: "animes-plus-89b93",
+      storageBucket: "animes-plus-89b93.appspot.com",
+      messagingSenderId: "402867181985",
+      appId: "1:402867181985:web:d695b12977fe4270dbd3e0",
+      measurementId: "G-DN632G7XJT"
+    };
+    firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+let series = [];
+let todas = [];
+let pagina = 0;
+const porPagina = 10;
+const letraActual = 'p'; // ← Letra fija
+
+async function cargarSeries() {
+  const snapshot = await db.collection("animes-series-indice").get();
+  todas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+  // Filtra por la letra específica
+  series = todas.filter(serie => serie.id.toLowerCase().startsWith(letraActual));
+  pagina = 0;
+
+  const nombreSelector = document.getElementById("nombreSelector");
+
+  // Armar el <select> desde cero
+  let opciones = `<option value="">Todas las series con la letra "${letraActual.toUpperCase()}"</option>`;
+  opciones += series.map(s => `<option value="${s.id}">${s.id}</option>`).join('');
+  nombreSelector.innerHTML = opciones;
+  nombreSelector.selectedIndex = 0;
+
+  mostrarPagina();
+}
+
+document.getElementById("nombreSelector").addEventListener("change", e => {
+  const seleccion = e.target.value;
+  pagina = 0;
+
+  if (seleccion === "") {
+    mostrarPagina(); // ← Muestra todas si es la opción de ver todas
+    return;
+  }
+
+  // Mostrar solo la serie seleccionada
+  const contenedor = document.getElementById("cardsContainer");
+  contenedor.innerHTML = "";
+
+  const filtradas = series.filter(s => s.id === seleccion);
+
+  filtradas.forEach((s, i) => {
+    const wrapper = document.createElement("div");
+    wrapper.className = "carta-wrapper";
+    if (i % 2 === 1) wrapper.classList.add("carta-superpuesta");
+
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="card-imagen">
+        <img src="${s.imagen}" alt="${s.nombresec}" />
+      </div>
+      <div class="card-contenido">
+        <div class="nombre-id">${s.id}</div>
+        <div class="titulo">${s.nombresec}</div>
+        <div class="subtitulo">${s.nombresec02 || ""}</div>
+        <div class="subtitulo">${s.año} - ${s.idioma}</div>
+        <div class="etiquetas">
+          ${s.categoria.split(',').map(c => `<span>${c.trim()}</span>`).join('')}
+        </div>
+        <button class="boton-ver" onclick="window.open('${s.sitio}', '_blank')">Ver Ahora</button>
+      </div>
+    `;
+    wrapper.appendChild(card);
+    contenedor.appendChild(wrapper);
+  });
+});
+
+function mostrarPagina() {
+  const contenedor = document.getElementById("cardsContainer");
+  contenedor.innerHTML = "";
+  const inicio = pagina * porPagina;
+  const fin = inicio + porPagina;
+  const filtradas = series.slice(inicio, fin);
+
+  filtradas.forEach((s, i) => {
+    const wrapper = document.createElement("div");
+    wrapper.className = "carta-wrapper";
+    if (i % 2 === 1) wrapper.classList.add("carta-superpuesta");
+
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="card-imagen">
+        <img src="${s.imagen}" alt="${s.nombresec}" />
+      </div>
+      <div class="card-contenido">
+        <div class="nombre-id">${s.id}</div>
+        <div class="titulo">${s.nombresec}</div>
+        <div class="subtitulo">${s.nombresec02 || ""}</div>
+        <div class="subtitulo">${s.año} - ${s.idioma}</div>
+        <div class="etiquetas">
+          ${s.categoria.split(',').map(c => `<span>${c.trim()}</span>`).join('')}
+        </div>
+        <button class="boton-ver" onclick="window.open('${s.sitio}', '_blank')">Ver Ahora</button>
+      </div>
+    `;
+    wrapper.appendChild(card);
+    contenedor.appendChild(wrapper);
+  });
+
+  actualizarInfoPagina(); // ← Agregado aquí
+}
+
+function actualizarInfoPagina() {
+  const totalPaginas = Math.ceil(series.length / porPagina);
+  document.getElementById("infoPagina").textContent = `Página ${pagina + 1} de ${totalPaginas}`;
+}
+
+
+function paginaSiguiente() {
+  if ((pagina + 1) * porPagina < series.length) {
+    pagina++;
+    mostrarPagina();
+  }
+}
+
+function paginaAnterior() {
+  if (pagina > 0) {
+    pagina--;
+    mostrarPagina();
+  }
+}
+
+document.getElementById("buscador").addEventListener("input", e => {
+  const texto = e.target.value.toLowerCase();
+  pagina = 0;
+  const contenedor = document.getElementById("cardsContainer");
+  contenedor.innerHTML = "";
+
+  const resultados = series.filter(s => s.id.toLowerCase().includes(texto));
+  resultados.slice(0, porPagina).forEach((s, i) => {
+    const wrapper = document.createElement("div");
+    wrapper.className = "carta-wrapper";
+    if (i % 2 === 1) wrapper.classList.add("carta-superpuesta");
+
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="card-imagen">
+        <img src="${s.imagen}" alt="${s.nombresec}" />
+      </div>
+      <div class="card-contenido">
+        <div class="nombre-id">${s.id}</div>
+        <div class="titulo">${s.nombresec}</div>
+        <div class="subtitulo">${s.nombresec02 || ""}</div>
+        <div class="subtitulo">${s.año} - ${s.idioma}</div>
+        <div class="etiquetas">
+          ${s.categoria.split(',').map(c => `<span>${c.trim()}</span>`).join('')}
+        </div>
+        <button class="boton-ver" onclick="window.open('${s.sitio}', '_blank')">Ver Ahora</button>
+      </div>
+    `;
+    wrapper.appendChild(card);
+    contenedor.appendChild(wrapper);
+  });
+});
+
+cargarSeries(); // ← Ejecutar al inicio
+
+  </script>
+</body>
+</html>

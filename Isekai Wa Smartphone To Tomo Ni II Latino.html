@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Reproductor estilo YouTube - Firebase</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+     body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Arial', sans-serif;
+      background: url(https://static.wixstatic.com/media/8a7da0_da693a5c2b2d42bbb084707197421b0a~mv2.png);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      display: flex;
+      width: 90%;
+      max-width: 1300px;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      overflow: hidden;
+    }
+
+    .main-player {
+      flex: 3;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .video-container {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 10px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .video-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+      margin-bottom: 20px;
+      color: #003a73;
+    }
+
+    .controls-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .control-btn {
+      background: #003a73;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 30px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .control-btn:hover {
+      background: #007bb5;
+    }
+
+    .episode-selector {
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      font-weight: bold;
+    }
+
+    .sidebar {
+      flex: 2;
+      background: #f4f4f4;
+      padding: 15px;
+      overflow-y: auto;
+    }
+
+    .sidebar-header {
+      margin-bottom: 10px;
+    }
+
+    .sidebar-header h2 {
+      margin: 0;
+      color: #003a73;
+      font-size: 20px;
+    }
+
+    .sidebar-header .sub-info {
+      font-size: 14px;
+      margin-top: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .server-select {
+      margin-top: 10px;
+      padding: 6px 12px;
+      font-size: 14px;
+      border-radius: 6px;
+      border: 1px solid #003a73;
+      background: white;
+      color: #003a73;
+      font-weight: bold;
+    }
+
+    .episode-list {
+      max-height: 420px;
+      overflow-y: auto;
+    }
+
+    .episode-item {
+      background: white;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      display: flex;
+      gap: 10px;
+      padding: 10px;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      transition: transform 0.2s, background-color 0.3s;
+    }
+
+    .episode-item:hover {
+      transform: scale(1.02);
+    }
+
+    .episode-item.active {
+      background-color: #dceeff;
+      border: 2px solid #007bb5;
+    }
+
+    .thumbnail {
+      width: 120px;
+      height: 70px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+
+    .episode-info {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .episode-title {
+      font-weight: bold;
+      color: #003a73;
+    }
+
+    .episode-server {
+      font-size: 0.85em;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="main-player">
+      <div class="controls-bar">
+        <select class="episode-selector" onchange="selectEpisode(this.value)"></select>
+        <div>
+          <button class="control-btn" onclick="previousEpisode()">⏪ Episodio Anterior</button>
+          <button class="control-btn" onclick="nextEpisode()">Siguiente Episodio ⏩</button>
+        </div>
+      </div>
+      <div class="video-container" id="videoContainer"></div>
+      <div class="video-info" id="videoDetails"></div>
+    </div>
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <h2 id="serieTitle">Serie</h2>
+        <div class="sub-info">
+          <span id="seasonLang">Temporada | Idioma</span>
+          <span id="episodeCount">0 episodios</span>
+        </div>
+        <select class="server-select" id="serverSelect" onchange="changeVideo(this.value)"></select>
+      </div>
+      <div class="episode-list" id="sidebarPlaylist"></div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyB6MY2y5uyum87PdUHUpY8NNh4D73Yhx4U",
+      authDomain: "animes-plus-89b93.firebaseapp.com",
+      projectId: "animes-plus-89b93",
+      storageBucket: "animes-plus-89b93.appspot.com",
+      messagingSenderId: "402867181985",
+      appId: "1:402867181985:web:d695b12977fe4270dbd3e0",
+      measurementId: "G-DN632G7XJT"
+    };
+
+    const nombreSerie = "Isekai Wa Smartphone To Tomo Ni";
+    const temporada = "Temporada 02";
+    const idioma = "Español Latino";
+
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    let episodios = [];
+    let currentEpisode = 0;
+    let servidorActivo = null;
+
+    async function cargarEpisodiosDesdeFirebase() {
+      const servidoresSnap = await db
+        .collection("animes-series").doc(nombreSerie)
+        .collection("Temporadas").doc(temporada)
+        .collection("Idiomas").doc(idioma)
+        .collection("Servidores").get();
+
+      episodios = [];
+
+      for (const servidorDoc of servidoresSnap.docs) {
+        const servidor = servidorDoc.id;
+        const epsSnapshot = await db
+          .collection("animes-series").doc(nombreSerie)
+          .collection("Temporadas").doc(temporada)
+          .collection("Idiomas").doc(idioma)
+          .collection("Servidores").doc(servidor)
+          .collection("Episodios").get();
+
+        epsSnapshot.forEach(doc => {
+          const nombreEp = doc.id;
+          const iframe = doc.data().iframe;
+
+          let episodio = episodios.find(e => e.name === nombreEp);
+          if (!episodio) {
+            episodio = { name: nombreEp, embeds: {} };
+            episodios.push(episodio);
+          }
+
+          episodio.embeds[servidor] = iframe;
+        });
+      }
+
+      episodios.sort((a, b) => a.name.localeCompare(b.name, 'es', { numeric: true }));
+      servidorActivo = Object.keys(episodios[0].embeds)[0];
+      updateHeaderInfo();
+      renderEpisodeSelector();
+      renderServerOptions();
+      changeVideo(servidorActivo);
+      renderSidebar();
+    }
+
+    function renderEpisodeSelector() {
+      const selector = document.querySelector('.episode-selector');
+      selector.innerHTML = '';
+      episodios.forEach((ep, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = ep.name;
+        selector.appendChild(option);
+      });
+       selector.onchange = () => {
+    currentEpisode = parseInt(selector.value);
+    // Cambiar episodio sin perder el servidor actual
+    changeVideo(servidorActivo);
+  };
+    }
+
+    function renderServerOptions() {
+  const serverSelect = document.getElementById("serverSelect");
+  serverSelect.innerHTML = '';
+
+  // Obtener todos los servidores únicos de todos los episodios
+  const servidores = [...new Set(
+    episodios.flatMap(ep => Object.keys(ep.embeds))
+  )];
+
+  servidores.forEach(server => {
+    const option = document.createElement('option');
+    option.value = server;
+    option.textContent = server;
+    if (server === servidorActivo) option.selected = true;
+    serverSelect.appendChild(option);
+  });
+}
+
+
+    function renderSidebar() {
+      const sidebar = document.getElementById('sidebarPlaylist');
+      sidebar.innerHTML = '';
+
+      episodios.forEach((ep, index) => {
+        if (ep.embeds[servidorActivo]) {
+          const item = document.createElement('div');
+          item.className = 'episode-item';
+          item.onclick = () => {
+            currentEpisode = index;
+            renderEpisodeSelector();
+            renderServerOptions();
+            changeVideo(servidorActivo);
+          };
+
+          const img = document.createElement('img');
+          img.src = getCustomThumbnailURL(servidorActivo);
+          img.className = 'thumbnail';
+
+          const info = document.createElement('div');
+          info.className = 'episode-info';
+
+          const title = document.createElement('div');
+          title.className = 'episode-title';
+          title.textContent = ep.name;
+
+          const server = document.createElement('div');
+          server.className = 'episode-server';
+          server.textContent = servidorActivo;
+
+          info.appendChild(title);
+          info.appendChild(server);
+          item.appendChild(img);
+          item.appendChild(info);
+
+          sidebar.appendChild(item);
+        }
+      });
+    }
+
+    function updateHeaderInfo() {
+      document.getElementById("serieTitle").textContent = nombreSerie;
+      document.getElementById("seasonLang").textContent = `${temporada} | ${idioma}`;
+      document.getElementById("episodeCount").textContent = `${episodios.length} episodios`;
+    }
+
+    function selectEpisode(index) {
+      currentEpisode = parseInt(index);
+      servidorActivo = Object.keys(episodios[currentEpisode].embeds)[0];
+      renderServerOptions();
+      changeVideo(servidorActivo);
+    }
+
+    function nextEpisode() {
+  if (currentEpisode < episodios.length - 1) {
+    currentEpisode++;
+    renderEpisodeSelector();
+    renderServerOptions();
+    changeVideo(servidorActivo); // Mantiene el servidor actual
+  }
+}
+
+function previousEpisode() {
+  if (currentEpisode > 0) {
+    currentEpisode--;
+    renderEpisodeSelector();
+    renderServerOptions();
+    changeVideo(servidorActivo); // Mantiene el servidor actual
+  }
+}
+
+
+    function changeVideo(servidor) {
+  servidorActivo = servidor;
+  const videoContainer = document.getElementById('videoContainer');
+  const videoDetails = document.getElementById("videoDetails");
+
+  // Limpiar contenido anterior
+  videoContainer.innerHTML = '';
+
+  const embed = episodios[currentEpisode].embeds[servidor];
+
+   // Si el episodio actual no está disponible en el servidor
+  if (!embed) {
+    videoContainer.innerHTML = `
+      <div style="padding: 20px; background-color: #ffeeee; color: #a94442; border-radius: 10px; text-align: center;">
+        <p style="font-weight: bold;">Este episodio (<strong>${episodios[currentEpisode].name}</strong>) no está disponible en el servidor: <u>${servidor}</u> por varias razones (Copyright o no se pudo subir al Servidor).</p>
+        <button onclick="irAEpisodioDisponible('${servidor.replace(/'/g, "\\'")}')" style="margin-top:10px; padding: 10px 20px; background-color: #003a73; color: white; border: none; border-radius: 8px; cursor: pointer;">
+          Ir a los episodios disponibles
+        </button>
+      </div>
+    `;
+    videoDetails.textContent = `${nombreSerie} | ${temporada} | ${episodios[currentEpisode].name} | ${servidor} (No disponible)`;
+    renderServerOptions?.();
+    renderSidebar?.();
+    return;
+  }
+
+  if (servidor === 'abyss') {
+    // Crear un iframe directamente sin tocar su contenido
+    const iframe = document.getElementById('abyssIframe') || document.createElement('iframe');
+    iframe.id = 'abyssIframe';
+    iframe.style.display = 'block';
+    iframe.style.width = '100%';
+    iframe.style.minHeight = '440px';
+    iframe.style.border = 'none';
+    iframe.setAttribute('allowfullscreen', '');
+    iframe.setAttribute('loading', 'lazy');
+
+    // Insertar sin usar innerHTML ni DOMParser
+    iframe.srcdoc = episodios[currentEpisode].embeds[servidor];
+
+    videoContainer.appendChild(iframe);
+  } else {
+    // Otros servidores
+    let embed = episodios[currentEpisode].embeds[servidor];
+
+    if (servidor === 'Tokio Video') {
+      embed = embed.replace(/style="[^"]*max-width:[^";]*;?[^"]*"/gi, '');
+    }
+
+    videoContainer.innerHTML = embed;
+  }
+
+  // Actualizar detalles
+  if (videoDetails) {
+    videoDetails.textContent = `${nombreSerie} | ${temporada} | ${episodios[currentEpisode].name} | ${servidor}`;
+  }
+  
+  renderServerOptions?.();
+  renderSidebar?.();
+}
+
+function irAEpisodioDisponible(servidor) {
+  const primerDisponible = episodios.findIndex(ep => ep.embeds[servidor]);
+
+  if (primerDisponible !== -1) {
+    currentEpisode = primerDisponible;
+    changeVideo(servidor); // Llama a la misma función para que lo cargue correctamente
+  } else {
+    alert("Este servidor no tiene episodios disponibles.");
+  }
+}
+
+function getCustomThumbnailURL(servidor) {
+  return "https://static.wixstatic.com/media/8a7da0_00b3af90f9d649f9942a7af9075e3b71~mv2.jpg";
+}
+
+    //function getCustomThumbnailURL(servidor) { (Opcional si se quiere que cada servidor tenga su miniatura)
+      //const thumbnails = {
+        //"Abyss": "https://m.media-amazon.com/images/M/MV5BNjliYzA2OWQtNTI3Mi00OTc4LWJlZDktNzhmZTc5YjhiZDEyXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
+        //"Bitchute": "https://m.media-amazon.com/images/M/MV5BNjliYzA2OWQtNTI3Mi00OTc4LWJlZDktNzhmZTc5YjhiZDEyXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
+        //"Dailymotion": "https://m.media-amazon.com/images/M/MV5BNjliYzA2OWQtNTI3Mi00OTc4LWJlZDktNzhmZTc5YjhiZDEyXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
+        
+      //};
+      //return thumbnails[servidor] || "https://via.placeholder.com/120x70?text=Preview";
+    //}
+
+function renderSidebar() {
+  const sidebar = document.getElementById('sidebarPlaylist');
+  sidebar.innerHTML = '';
+
+  episodios.forEach((ep, index) => {
+    if (ep.embeds[servidorActivo]) {
+      const item = document.createElement('div');
+      item.className = 'episode-item';
+      if (index === currentEpisode) {
+        item.classList.add('active');
+      }
+      item.onclick = () => {
+        currentEpisode = index;
+        renderEpisodeSelector();
+        renderServerOptions();
+        changeVideo(servidorActivo);
+      };
+
+      const img = document.createElement('img');
+      img.src = getCustomThumbnailURL(servidorActivo);
+      img.className = 'thumbnail';
+
+      const info = document.createElement('div');
+      info.className = 'episode-info';
+
+      const title = document.createElement('div');
+      title.className = 'episode-title';
+      title.textContent = ep.name;
+
+      const server = document.createElement('div');
+      server.className = 'episode-server';
+      server.textContent = servidorActivo;
+
+      info.appendChild(title);
+      info.appendChild(server);
+      item.appendChild(img);
+      item.appendChild(info);
+
+      sidebar.appendChild(item);
+    }
+  });
+}
+
+    cargarEpisodiosDesdeFirebase();
+
+  </script>
+</body>
+</html>
