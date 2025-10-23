@@ -2,213 +2,330 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Menú de Series con Filtros</title>
+  <title>Menú de Series | Leno Style</title>
+
+  <!-- Estilos base del tema Leno -->
+  <link rel="stylesheet" href="css/bootstrap.css">
+  <link rel="stylesheet" href="css/fontawesome-all.css">
+  <link rel="stylesheet" href="css/styles.css">
+
+  <!-- Fuente moderna -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
   <style>
-    body {
-      font-family: 'Arial', sans-serif;
-      background-color: #f8fafc;
-      margin: 0;
-      padding: 20px;
-      color: #2d3748;
-    }
+   /* =================== FUENTE GLOBAL =================== */
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #f8fafc;
+  color: #2d3748;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
 
-    h1 {
-      text-align: center;
-      color: #1a365d;
-      margin-bottom: 30px;
-      font-size: 2.5rem;
-      font-weight: 700;
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
-    }
-.header-container {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      align-items: center;
-      margin-bottom: 20px;
-      position: relative;
-    }
+/* =================== ENCABEZADO STICKY =================== */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(90deg, #00bfd8 0%, #0072ff 100%);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  z-index: 1100;
+  padding: 10px 24px;
+}
 
-    .header-container h1 {
-      grid-column: 1;
-      justify-self: center;
-      width: 100%;
-      text-align: center;
-    }
+/* Contenedor interno: título | filtros | botón */
+.header .header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+}
 
-    .btn-logout {
-      grid-column: 2;
-      padding: 10px 20px;
-      background-color: #e53e3e;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      text-decoration: none;
-      display: inline-block;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
+/* Zona izquierda (Título) */
+.header .left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 220px;
+}
 
-    .filtros {
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-      margin-bottom: 30px;
-      flex-wrap: wrap;
-      background-color: #1a365d;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
+.logo-text {
+  font-size: 1.25rem;
+  color: #ffffff;
+  font-weight: 600;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
-    .filtros input, .filtros select {
-      padding: 12px 15px;
-      font-size: 16px;
-      border: 2px solid #4299e1;
-      border-radius: 8px;
-      background-color: #ffffff;
-      color: #2d3748;
-      min-width: 200px;
-      transition: all 0.3s ease;
-    }
+/* Zona central (Filtros) */
+.header .center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex: 1 1 auto;
+  max-width: 900px;
+  padding: 6px 12px;
+}
 
-    .filtros input:focus, .filtros select:focus {
-      outline: none;
-      border-color: #3182ce;
-      box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.3);
-    }
+.filtros-inline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
 
-    .filtros input::placeholder {
-      color: #a0aec0;
-    }
+/* Inputs y selects estilo Leno */
+.leno-select,
+.leno-input {
+  border-radius: 30px;
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.95);
+  padding: 10px 16px;
+  font-size: 0.95rem;
+  color: #1f2937;
+  min-width: 200px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+}
 
-    .series-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 25px;
-      padding: 20px;
-    }
+.leno-select:focus,
+.leno-input:focus {
+  border-color: rgba(255, 255, 255, 0.95);
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(0, 191, 216, 0.12);
+}
 
-    .serie-card {
-      background-color: white;
-      border-radius: 12px;
-      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
-      transition: all 0.3s ease;
-      border: 1px solid #e2e8f0;
-    }
+/* Zona derecha (Botón cerrar sesión rojo) */
+.header .right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 160px;
+  justify-content: flex-end;
+}
 
-    .serie-card:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
-    }
+/* Botón rojo moderno */
+.btn-solid-sm {
+  background: #dc3545;
+  color: #ffffff;
+  font-weight: 600;
+  padding: 9px 18px;
+  border-radius: 30px;
+  border: none;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  transition: all 0.25s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
 
-    .serie-card img {
-      width: 100%;
-      height: 350px;
-      object-fit: cover;
-      border-bottom: 4px solid #3182ce;
-    }
+.btn-solid-sm:hover {
+  background: #b02a37;
+  transform: scale(1.05);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.15);
+}
 
-    .serie-info {
-      padding: 20px;
-      text-align: center;
-    }
+/* Icono del título */
+.logo-text .fa-film {
+  font-size: 1.05rem;
+  opacity: 0.95;
+}
 
-    .serie-info h3 {
-      margin: 10px 0 8px;
-      font-size: 1.4rem;
-      color: #1a365d;
-      font-weight: 600;
-    }
+/* =================== CONTENIDO PRINCIPAL =================== */
+.main-content {
+  margin-top: 86px;
+  padding: 18px;
+}
 
-    .serie-info p {
-      margin: 0;
-      color: #4a5568;
-      font-size: 1rem;
-      font-weight: 500;
-    }
+/* =================== TARJETAS (CARDS) =================== */
+.series-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center; /* Centra las cards */
+  gap: 30px;
+  padding: 20px;
+  margin-top: 10px;
+}
 
-    .btn-ver {
-      margin-top: 15px;
-      display: inline-block;
-      padding: 10px 24px;
-      background-color: #3182ce;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      text-decoration: none;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      font-size: 0.9rem;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
+/* Card individual */
+.serie-card {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  width: 270px; /* tamaño fijo */
+  transition: all 0.3s ease;
+  text-align: center;
+}
 
-    .btn-ver:hover {
-      background-color: #2c5282;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-    }
+.serie-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+}
 
-    @media (max-width: 768px) {
-      .filtros {
-        flex-direction: column;
-        align-items: center;
-      }
-      
-      .filtros input, .filtros select {
-        width: 100%;
-      }
-      
-      .series-grid {
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      }
+/* Imagen */
+.serie-card img {
+  width: 100%;
+  height: 350px;
+  object-fit: cover;
+}
 
-      .header-container {
-        grid-template-columns: 1fr;
-        gap: 15px;
-      }
+/* Contenido */
+.serie-info {
+  padding: 20px;
+}
 
-      .header-container h1 {
-        grid-column: 1;
-        order: 1;
-      }
+.serie-info h3 {
+  color: #0072ff;
+  font-weight: 700;
+  font-size: 1.3rem;
+}
 
-      .btn-logout {
-        grid-column: 1;
-        order: 2;
-        justify-self: end;
-      }
-    }
+.serie-info p {
+  color: #555;
+  margin-bottom: 10px;
+}
+
+/* Botón ver */
+.btn-ver {
+  background: linear-gradient(90deg, #00bfd8 0%, #0072ff 100%);
+  border: none;
+  border-radius: 50px;
+  padding: 10px 25px;
+  color: #fff;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: inline-block;
+  text-decoration: none;
+}
+
+.btn-ver:hover {
+  transform: scale(1.05);
+}
+
+/* =================== RESPONSIVE =================== */
+@media (max-width: 1100px) {
+  .leno-select,
+  .leno-input {
+    min-width: 180px;
+  }
+}
+
+@media (max-width: 900px) {
+  .header .header-row {
+    gap: 10px;
+  }
+  .center {
+    max-width: 600px;
+    padding: 0 8px;
+  }
+  .logo-text {
+    font-size: 1.05rem;
+  }
+  .btn-solid-sm {
+    padding: 8px 14px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .header .header-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .header .left {
+    justify-content: space-between;
+  }
+
+  .center {
+    order: 2;
+    width: 100%;
+  }
+
+  .right {
+    order: 3;
+    justify-content: flex-end;
+  }
+
+  .filtros-inline {
+    justify-content: flex-start;
+    padding-left: 6px;
+  }
+
+  .leno-select,
+  .leno-input {
+    min-width: 160px;
+  }
+
+  .main-content {
+    margin-top: 140px;
+  }
+}
+
   </style>
 </head>
+
 <body>
-  <div class="header-container">
-    <h1>Menú Principal de Series</h1>
-    <a href="index.html" class="btn-logout">Cerrar sesión</a>
+ <!-- Encabezado adaptado al estilo Leno (sticky) -->
+<header id="header" class="header">
+  <div class="container header-row">
+    <!-- IZQUIERDA: Título -->
+    <div class="left">
+      <h1 class="logo-text m-0 fw-bold text-white">
+        <i class="fas fa-film"></i> Menú de Series
+      </h1>
+    </div>
+
+    <!-- CENTRO: filtros (misma estructura y mismos ids que usas) -->
+    <div class="center">
+      <div class="filtros-inline">
+        <select id="menuSeries" class="leno-select">
+          <option value="">Todas las series</option>
+        </select>
+
+        <input type="text" id="buscador" class="leno-input" placeholder="Buscar por nombre parcial...">
+
+        <select id="ordenar" class="leno-select">
+          <option value="az">Orden A-Z</option>
+          <option value="za">Orden Z-A</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- DERECHA: Botón cerrar sesión -->
+    <div class="right">
+      <a href="index.html" class="btn-solid-sm">
+        <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+      </a>
+    </div>
   </div>
+</header>
 
-  <div class="filtros">
-    <select id="menuSeries">
-      <option value="">Todas las series</option>
-    </select>
-
-    <input type="text" id="buscador" placeholder="Buscar por nombre parcial...">
-
-    <select id="ordenar">
-      <option value="az">Orden A-Z</option>
-      <option value="za">Orden Z-A</option>
-    </select>
-  </div>
-
+<!-- Contenido principal (con margen-top para el header fijo) -->
+<main class="main-content container">
   <div class="series-grid" id="contenedorSeries"></div>
+</main>
 
+  <!-- Scripts base del tema Leno -->
+  <script src="js/jquery.min.js"></script>
+  <script src="js/bootstrap.bundle.min.js"></script>
+  <script src="js/custom.js"></script>
+
+  <!-- Lógica Firebase y renderizado (sin cambios en ids ni lógica) -->
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyB6MY2y5uyum87PdUHUpY8NNh4D73Yhx4U",
@@ -220,10 +337,8 @@
       measurementId: "G-DN632G7XJT"
     };
 
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-
     let todasLasSeries = [];
     let nombresUnicos = new Set();
 
@@ -302,7 +417,6 @@
       });
     }
 
-    // Escuchadores de filtros
     document.getElementById("buscador").addEventListener("input", renderizarSeries);
     document.getElementById("menuSeries").addEventListener("change", renderizarSeries);
     document.getElementById("ordenar").addEventListener("change", renderizarSeries);
