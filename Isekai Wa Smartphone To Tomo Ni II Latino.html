@@ -24,6 +24,7 @@
       border-radius: 20px;
       box-shadow: 0 8px 32px rgba(0,0,0,0.2);
       overflow: hidden;
+      position: relative;
     }
 
     .main-player {
@@ -85,6 +86,7 @@
       background: #f4f4f4;
       padding: 15px;
       overflow-y: auto;
+      transition: transform 0.3s ease-in-out;
     }
 
     .sidebar-header {
@@ -164,6 +166,199 @@
       font-size: 0.85em;
       color: #666;
     }
+
+  /* ======= ESTILO RESPONSIVO ======= */
+  @media (max-width: 900px) {
+    body {
+      align-items: flex-start;
+      background-color: #f8fafc;
+    }
+
+    /* 🔹 Centrar y achicar el marco del contenido */
+    .container {
+      flex-direction: column;
+      width: 94%; /* antes 100% */
+      max-width: 950px;
+      margin: 15px auto;
+      height: auto;
+      border-radius: 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      background: #ffffff;
+    }
+
+    .main-player {
+      padding: 12px;
+    }
+
+    /* 🔹 Ajustar el contenedor de video */
+    #videoContainer {
+      width: 100%;
+      aspect-ratio: 16/9;
+      position: relative;
+      background-color: #000;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    /* 🔹 Adaptar iframes de video */
+    #videoContainer iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100% !important;
+      height: 100% !important;
+      border: none;
+      border-radius: 12px;
+      object-fit: cover;
+    }
+
+    /* 🔹 La lista de episodios horizontal con scroll */
+    .sidebar {
+      order: 2;
+      width: 100%;
+      padding: 10px;
+      background: #f9f9f9;
+      border-top: 2px solid #e0e0e0;
+      overflow: hidden;
+    }
+
+    .episode-list {
+      display: flex;
+      flex-direction: row;
+      overflow-x: auto;
+      overflow-y: hidden;
+      gap: 10px;
+      padding-bottom: 10px;
+      scroll-behavior: smooth;
+    }
+
+    .episode-item {
+      flex: 0 0 calc(25% - 10px);
+      min-width: 180px;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      background: white;
+      border-radius: 10px;
+      padding: 10px;
+    }
+
+    .episode-item.active {
+      background-color: #dceeff;
+      border: 2px solid #007bb5;
+    }
+
+    .thumbnail {
+      width: 100%;
+      height: 100px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+
+    .episode-info {
+      margin-top: 5px;
+    }
+
+    .episode-title {
+      font-weight: bold;
+      font-size: 14px;
+      color: #003a73;
+    }
+
+    .episode-server {
+      font-size: 12px;
+      color: #666;
+    }
+
+    /* 🔹 Ajuste de controles */
+    .controls-bar {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
+    }
+
+    .controls-bar select {
+      width: 100%;
+    }
+
+    .controls-bar > div {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .control-btn {
+      flex: 1;
+      padding: 10px;
+    }
+  }
+
+  /* Extra refinamiento para celulares pequeños */
+  @media (max-width: 600px) {
+    .container {
+      width: 92%;
+      margin: 10px auto;
+      border-radius: 18px;
+    }
+
+    #videoContainer {
+      aspect-ratio: 16/9;
+    }
+
+    .episode-item {
+      min-width: 150px;
+    }
+  }
+
+  /* ======== AJUSTE DE CONTADOR DE EPISODIOS ======== */
+#episodeCount {
+  display: inline-block;
+  font-size: 15px;
+  font-weight: 600;
+  color: #003a73;
+  margin-top: 6px;
+  padding: 4px 10px;
+  background: #e6f0ff;
+  border-radius: 10px;
+  border: 1px solid #bcd3f9;
+  white-space: nowrap; /* 🔹 Evita que se corte el texto */
+}
+
+/* 🔹 Asegura que el marco no tape el contador */
+.sidebar-header .sub-info {
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* ======== AJUSTE DEL TÍTULO LARGO ======== */
+#videoDetails {
+  font-size: 16px;
+  font-weight: 600;
+  color: #003a73;
+  margin-top: 8px;
+  word-wrap: break-word;
+  word-break: break-word;
+  line-height: 1.3;
+}
+
+/* 🔹 En móviles: título limitado a 2 líneas */
+@media (max-width: 900px) {
+  #videoDetails {
+    font-size: 14px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* máximo 2 líneas */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 5px;
+  }
+
+  #episodeCount {
+    font-size: 14px;
+    margin-top: 5px;
+  }
+}
+
   </style>
 </head>
 <body>
@@ -179,7 +374,9 @@
       <div class="video-container" id="videoContainer"></div>
       <div class="video-info" id="videoDetails"></div>
     </div>
-    <div class="sidebar">
+
+    <!-- LISTA DE EPISODIOS -->
+    <div class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <h2 id="serieTitle">Serie</h2>
         <div class="sub-info">
@@ -195,6 +392,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
   <script>
+    /* ==================== CONFIGURACIÓN FIREBASE ==================== */
     const firebaseConfig = {
       apiKey: "AIzaSyB6MY2y5uyum87PdUHUpY8NNh4D73Yhx4U",
       authDomain: "animes-plus-89b93.firebaseapp.com",
@@ -257,6 +455,7 @@
       renderSidebar();
     }
 
+    /* ==================== FUNCIONES DE REPRODUCCIÓN ==================== */
     function renderEpisodeSelector() {
       const selector = document.querySelector('.episode-selector');
       selector.innerHTML = '';
@@ -266,67 +465,54 @@
         option.textContent = ep.name;
         selector.appendChild(option);
       });
-       selector.onchange = () => {
-    currentEpisode = parseInt(selector.value);
-    // Cambiar episodio sin perder el servidor actual
-    changeVideo(servidorActivo);
-  };
+      selector.onchange = () => {
+        currentEpisode = parseInt(selector.value);
+        changeVideo(servidorActivo);
+      };
     }
 
     function renderServerOptions() {
-  const serverSelect = document.getElementById("serverSelect");
-  serverSelect.innerHTML = '';
-
-  // Obtener todos los servidores únicos de todos los episodios
-  const servidores = [...new Set(
-    episodios.flatMap(ep => Object.keys(ep.embeds))
-  )];
-
-  servidores.forEach(server => {
-    const option = document.createElement('option');
-    option.value = server;
-    option.textContent = server;
-    if (server === servidorActivo) option.selected = true;
-    serverSelect.appendChild(option);
-  });
-}
-
+      const serverSelect = document.getElementById("serverSelect");
+      serverSelect.innerHTML = '';
+      const servidores = [...new Set(episodios.flatMap(ep => Object.keys(ep.embeds)))];
+      servidores.forEach(server => {
+        const option = document.createElement('option');
+        option.value = server;
+        option.textContent = server;
+        if (server === servidorActivo) option.selected = true;
+        serverSelect.appendChild(option);
+      });
+    }
 
     function renderSidebar() {
       const sidebar = document.getElementById('sidebarPlaylist');
       sidebar.innerHTML = '';
-
       episodios.forEach((ep, index) => {
         if (ep.embeds[servidorActivo]) {
           const item = document.createElement('div');
           item.className = 'episode-item';
+          if (index === currentEpisode) item.classList.add('active');
           item.onclick = () => {
             currentEpisode = index;
             renderEpisodeSelector();
             renderServerOptions();
             changeVideo(servidorActivo);
           };
-
           const img = document.createElement('img');
           img.src = getCustomThumbnailURL(servidorActivo);
           img.className = 'thumbnail';
-
           const info = document.createElement('div');
           info.className = 'episode-info';
-
           const title = document.createElement('div');
           title.className = 'episode-title';
           title.textContent = ep.name;
-
           const server = document.createElement('div');
           server.className = 'episode-server';
           server.textContent = servidorActivo;
-
           info.appendChild(title);
           info.appendChild(server);
           item.appendChild(img);
           item.appendChild(info);
-
           sidebar.appendChild(item);
         }
       });
@@ -340,29 +526,26 @@
 
     function selectEpisode(index) {
       currentEpisode = parseInt(index);
-      servidorActivo = Object.keys(episodios[currentEpisode].embeds)[0];
-      renderServerOptions();
       changeVideo(servidorActivo);
     }
 
     function nextEpisode() {
-  if (currentEpisode < episodios.length - 1) {
-    currentEpisode++;
-    renderEpisodeSelector();
-    renderServerOptions();
-    changeVideo(servidorActivo); // Mantiene el servidor actual
-  }
-}
+      if (currentEpisode < episodios.length - 1) {
+        currentEpisode++;
+        renderEpisodeSelector();
+        renderServerOptions();
+        changeVideo(servidorActivo);
+      }
+    }
 
-function previousEpisode() {
-  if (currentEpisode > 0) {
-    currentEpisode--;
-    renderEpisodeSelector();
-    renderServerOptions();
-    changeVideo(servidorActivo); // Mantiene el servidor actual
-  }
-}
-
+    function previousEpisode() {
+      if (currentEpisode > 0) {
+        currentEpisode--;
+        renderEpisodeSelector();
+        renderServerOptions();
+        changeVideo(servidorActivo);
+      }
+    }
 
     function changeVideo(servidor) {
   servidorActivo = servidor;
@@ -374,7 +557,7 @@ function previousEpisode() {
 
   const embed = episodios[currentEpisode].embeds[servidor];
 
-   // Si el episodio actual no está disponible en el servidor
+  // Si el episodio actual no está disponible en el servidor
   if (!embed) {
     videoContainer.innerHTML = `
       <div style="padding: 20px; background-color: #ffeeee; color: #a94442; border-radius: 10px; text-align: center;">
@@ -403,7 +586,6 @@ function previousEpisode() {
 
     // Insertar sin usar innerHTML ni DOMParser
     iframe.srcdoc = episodios[currentEpisode].embeds[servidor];
-
     videoContainer.appendChild(iframe);
   } else {
     // Otros servidores
@@ -420,27 +602,38 @@ function previousEpisode() {
   if (videoDetails) {
     videoDetails.textContent = `${nombreSerie} | ${temporada} | ${episodios[currentEpisode].name} | ${servidor}`;
   }
-  
+
   renderServerOptions?.();
   renderSidebar?.();
 }
 
 function irAEpisodioDisponible(servidor) {
-  const primerDisponible = episodios.findIndex(ep => ep.embeds[servidor]);
+  let encontrado = false;
 
-  if (primerDisponible !== -1) {
-    currentEpisode = primerDisponible;
-    changeVideo(servidor); // Llama a la misma función para que lo cargue correctamente
-  } else {
-    alert("Este servidor no tiene episodios disponibles.");
+  for (let i = 0; i < episodios.length; i++) {
+    if (episodios[i].embeds[servidor]) {
+      currentEpisode = i;
+      changeVideo(servidor);
+      encontrado = true;
+      break;
+    }
+  }
+
+  if (!encontrado) {
+    const videoContainer = document.getElementById('videoContainer');
+    videoContainer.innerHTML = `
+      <div style="padding: 20px; background-color: #fff8e1; color: #8a6d3b; border-radius: 10px; text-align: center;">
+        <p>No se encontraron episodios disponibles en el servidor: <u>${servidor}</u>.</p>
+      </div>
+    `;
   }
 }
 
-function getCustomThumbnailURL(servidor) {
-  return "https://static.wixstatic.com/media/8a7da0_00b3af90f9d649f9942a7af9075e3b71~mv2.jpg";
-}
+    function getCustomThumbnailURL() {
+      return "https://static.wixstatic.com/media/8a7da0_00b3af90f9d649f9942a7af9075e3b71~mv2.jpg";
+    }
 
-    //function getCustomThumbnailURL(servidor) { (Opcional si se quiere que cada servidor tenga su miniatura)
+//function getCustomThumbnailURL(servidor) { (Opcional si se quiere que cada servidor tenga su miniatura)
       //const thumbnails = {
         //"Abyss": "https://m.media-amazon.com/images/M/MV5BNjliYzA2OWQtNTI3Mi00OTc4LWJlZDktNzhmZTc5YjhiZDEyXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
         //"Bitchute": "https://m.media-amazon.com/images/M/MV5BNjliYzA2OWQtNTI3Mi00OTc4LWJlZDktNzhmZTc5YjhiZDEyXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
@@ -450,51 +643,7 @@ function getCustomThumbnailURL(servidor) {
       //return thumbnails[servidor] || "https://via.placeholder.com/120x70?text=Preview";
     //}
 
-function renderSidebar() {
-  const sidebar = document.getElementById('sidebarPlaylist');
-  sidebar.innerHTML = '';
-
-  episodios.forEach((ep, index) => {
-    if (ep.embeds[servidorActivo]) {
-      const item = document.createElement('div');
-      item.className = 'episode-item';
-      if (index === currentEpisode) {
-        item.classList.add('active');
-      }
-      item.onclick = () => {
-        currentEpisode = index;
-        renderEpisodeSelector();
-        renderServerOptions();
-        changeVideo(servidorActivo);
-      };
-
-      const img = document.createElement('img');
-      img.src = getCustomThumbnailURL(servidorActivo);
-      img.className = 'thumbnail';
-
-      const info = document.createElement('div');
-      info.className = 'episode-info';
-
-      const title = document.createElement('div');
-      title.className = 'episode-title';
-      title.textContent = ep.name;
-
-      const server = document.createElement('div');
-      server.className = 'episode-server';
-      server.textContent = servidorActivo;
-
-      info.appendChild(title);
-      info.appendChild(server);
-      item.appendChild(img);
-      item.appendChild(info);
-
-      sidebar.appendChild(item);
-    }
-  });
-}
-
     cargarEpisodiosDesdeFirebase();
-
   </script>
 </body>
 </html>
