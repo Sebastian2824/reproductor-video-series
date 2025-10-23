@@ -167,34 +167,61 @@
       color: #666;
     }
 
-    /* ======= ESTILO RESPONSIVO ======= */
+  /* ======= ESTILO RESPONSIVO ======= */
   @media (max-width: 900px) {
     body {
       align-items: flex-start;
+      background-color: #f8fafc;
     }
 
+    /* 🔹 Centrar y achicar el marco del contenido */
     .container {
       flex-direction: column;
-      width: 100%;
+      width: 94%; /* antes 100% */
+      max-width: 950px;
+      margin: 15px auto;
       height: auto;
-      border-radius: 0;
+      border-radius: 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      background: #ffffff;
     }
 
     .main-player {
-      padding: 10px;
+      padding: 12px;
     }
 
+    /* 🔹 Ajustar el contenedor de video */
+    #videoContainer {
+      width: 100%;
+      aspect-ratio: 16/9;
+      position: relative;
+      background-color: #000;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    /* 🔹 Adaptar iframes de video */
+    #videoContainer iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100% !important;
+      height: 100% !important;
+      border: none;
+      border-radius: 12px;
+      object-fit: cover;
+    }
+
+    /* 🔹 La lista de episodios horizontal con scroll */
     .sidebar {
       order: 2;
       width: 100%;
       padding: 10px;
       background: #f9f9f9;
       border-top: 2px solid #e0e0e0;
-      /* 🔹 Eliminamos el scroll vertical */
       overflow: hidden;
     }
 
-    /* ✅ LISTA HORIZONTAL DE EPISODIOS EN CELULAR */
     .episode-list {
       display: flex;
       flex-direction: row;
@@ -205,10 +232,9 @@
       scroll-behavior: smooth;
     }
 
-    /* ✅ Cada episodio ocupa un ancho fijo */
     .episode-item {
-      flex: 0 0 calc(25% - 10px); /* 4 episodios visibles */
-      min-width: 200px;
+      flex: 0 0 calc(25% - 10px);
+      min-width: 180px;
       flex-direction: column;
       align-items: center;
       text-align: center;
@@ -244,7 +270,7 @@
       color: #666;
     }
 
-    /* Controles debajo del video */
+    /* 🔹 Ajuste de controles */
     .controls-bar {
       flex-direction: column;
       align-items: stretch;
@@ -267,13 +293,20 @@
     }
   }
 
+  /* Extra refinamiento para celulares pequeños */
   @media (max-width: 600px) {
-    body {
-      background: #ffffff;
+    .container {
+      width: 92%;
+      margin: 10px auto;
+      border-radius: 18px;
     }
 
-    .container {
-      box-shadow: none;
+    #videoContainer {
+      aspect-ratio: 16/9;
+    }
+
+    .episode-item {
+      min-width: 150px;
     }
   }
   </style>
