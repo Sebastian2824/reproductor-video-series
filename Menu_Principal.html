@@ -327,101 +327,180 @@ body {
 
   <!-- Lógica Firebase y renderizado (sin cambios en ids ni lógica) -->
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyB6MY2y5uyum87PdUHUpY8NNh4D73Yhx4U",
-      authDomain: "animes-plus-89b93.firebaseapp.com",
-      projectId: "animes-plus-89b93",
-      storageBucket: "animes-plus-89b93.appspot.com",
-      messagingSenderId: "402867181985",
-      appId: "1:402867181985:web:d695b12977fe4270dbd3e0",
-      measurementId: "G-DN632G7XJT"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyB6MY2y5uyum87PdUHUpY8NNh4D73Yhx4U",
+    authDomain: "animes-plus-89b93.firebaseapp.com",
+    projectId: "animes-plus-89b93",
+    storageBucket: "animes-plus-89b93.appspot.com",
+    messagingSenderId: "402867181985",
+    appId: "1:402867181985:web:d695b12977fe4270dbd3e0",
+    measurementId: "G-DN632G7XJT"
+  };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    let todasLasSeries = [];
-    let nombresUnicos = new Set();
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  let todasLasSeries = [];
+  let nombresUnicos = new Set();
+  const ITEMS_POR_PAGINA = 9;
+  let currentPage = 1;
 
-    async function cargarSeries() {
-      const snapshotSeries = await db.collection("animes-series-portadas").get();
-      const datosTemporales = [];
+  async function cargarSeries() {
+    const snapshotSeries = await db.collection("animes-series-portadas").get();
+    const datosTemporales = [];
 
-      for (const docSerie of snapshotSeries.docs) {
-        const nombreSerie = docSerie.id;
-        nombresUnicos.add(nombreSerie);
+    for (const docSerie of snapshotSeries.docs) {
+      const nombreSerie = docSerie.id;
+      nombresUnicos.add(nombreSerie);
 
-        const snapshotTemporadas = await db.collection("animes-series-portadas")
-          .doc(nombreSerie).collection("Temporadas").get();
+      const snapshotTemporadas = await db.collection("animes-series-portadas")
+        .doc(nombreSerie).collection("Temporadas").get();
 
-        snapshotTemporadas.forEach(docTemporada => {
-          const temporada = docTemporada.id;
-          const data = docTemporada.data();
-          const imagen = data.imagen || "https://via.placeholder.com/300x400?text=Sin+Imagen";
-          const sitio = data.sitio02 || "#";
+      snapshotTemporadas.forEach(docTemporada => {
+        const temporada = docTemporada.id;
+        const data = docTemporada.data();
+        const imagen = data.imagen || "https://via.placeholder.com/300x400?text=Sin+Imagen";
+        const sitio = data.sitio02 || "#";
 
-          datosTemporales.push({
-            nombre: nombreSerie,
-            temporada: temporada,
-            imagen: imagen,
-            sitio: sitio
-          });
+        datosTemporales.push({
+          nombre: nombreSerie,
+          temporada: temporada,
+          imagen: imagen,
+          sitio: sitio
         });
+      });
+    }
+
+    todasLasSeries = datosTemporales;
+    poblarMenuSeries();
+    renderizarSeries();
+  }
+
+  function poblarMenuSeries() {
+    const select = document.getElementById("menuSeries");
+    [...nombresUnicos].sort().forEach(nombre => {
+      const opcion = document.createElement("option");
+      opcion.value = nombre;
+      opcion.textContent = nombre;
+      select.appendChild(opcion);
+    });
+  }
+
+  function renderizarSeries() {
+    const contenedor = document.getElementById("contenedorSeries");
+    contenedor.innerHTML = "";
+
+    const filtroNombre = document.getElementById("buscador").value.toLowerCase();
+    const filtroSeleccionado = document.getElementById("menuSeries").value;
+    const orden = document.getElementById("ordenar").value;
+
+    let filtradas = todasLasSeries.filter(s => {
+      const coincideTexto = s.nombre.toLowerCase().includes(filtroNombre);
+      const coincideSeleccion = !filtroSeleccionado || s.nombre === filtroSeleccionado;
+      return coincideTexto && coincideSeleccion;
+    });
+
+    filtradas.sort((a, b) => {
+      if (orden === "az") return a.nombre.localeCompare(b.nombre);
+      else return b.nombre.localeCompare(a.nombre);
+    });
+
+    // Paginación
+    const totalPaginas = Math.ceil(filtradas.length / ITEMS_POR_PAGINA);
+    if (currentPage > totalPaginas) currentPage = totalPaginas;
+
+    const inicio = (currentPage - 1) * ITEMS_POR_PAGINA;
+    const paginadas = filtradas.slice(inicio, inicio + ITEMS_POR_PAGINA);
+
+    paginadas.forEach(serie => {
+      const card = document.createElement("div");
+      card.className = "serie-card";
+      card.innerHTML = `
+        <img src="${serie.imagen}" alt="Portada de ${serie.nombre}">
+        <div class="serie-info">
+          <h3>${serie.nombre}</h3>
+          <p>${serie.temporada}</p>
+          <a class="btn-ver" href="${serie.sitio}" target="_blank">Ver</a>
+        </div>
+      `;
+      contenedor.appendChild(card);
+    });
+
+    renderizarPaginacion(totalPaginas);
+  }
+
+  function renderizarPaginacion(totalPaginas) {
+    const paginacionContenedor = document.getElementById("paginacion") || document.createElement("div");
+    paginacionContenedor.id = "paginacion";
+    paginacionContenedor.style.textAlign = "center";
+    paginacionContenedor.style.marginTop = "30px";
+    paginacionContenedor.style.display = "flex";
+    paginacionContenedor.style.justifyContent = "center";
+    paginacionContenedor.style.alignItems = "center";
+    paginacionContenedor.style.gap = "15px";
+    paginacionContenedor.innerHTML = "";
+
+    const btnAnterior = document.createElement("button");
+    btnAnterior.innerHTML = "&#8592;";
+    btnAnterior.style.padding = "8px 14px";
+    btnAnterior.style.borderRadius = "50%";
+    btnAnterior.style.border = "none";
+    btnAnterior.style.cursor = "pointer";
+    btnAnterior.style.background = currentPage === 1 ? "#cbd5e0" : "#0072ff";
+    btnAnterior.style.color = "#fff";
+    btnAnterior.disabled = currentPage === 1;
+    btnAnterior.addEventListener("click", () => {
+      if (currentPage > 1) {
+        currentPage--;
+        renderizarSeries();
       }
+    });
 
-      todasLasSeries = datosTemporales;
-      poblarMenuSeries();
-      renderizarSeries();
+    const texto = document.createElement("span");
+    texto.textContent = `Página ${String(currentPage).padStart(2, '0')} - ${String(totalPaginas).padStart(2, '0')}`;
+    texto.style.fontWeight = "600";
+    texto.style.color = "#2d3748";
+
+    const btnSiguiente = document.createElement("button");
+    btnSiguiente.innerHTML = "&#8594;";
+    btnSiguiente.style.padding = "8px 14px";
+    btnSiguiente.style.borderRadius = "50%";
+    btnSiguiente.style.border = "none";
+    btnSiguiente.style.cursor = "pointer";
+    btnSiguiente.style.background = currentPage === totalPaginas ? "#cbd5e0" : "#0072ff";
+    btnSiguiente.style.color = "#fff";
+    btnSiguiente.disabled = currentPage === totalPaginas;
+    btnSiguiente.addEventListener("click", () => {
+      if (currentPage < totalPaginas) {
+        currentPage++;
+        renderizarSeries();
+      }
+    });
+
+    paginacionContenedor.appendChild(btnAnterior);
+    paginacionContenedor.appendChild(texto);
+    paginacionContenedor.appendChild(btnSiguiente);
+
+    if (!document.getElementById("paginacion")) {
+      document.querySelector(".main-content").appendChild(paginacionContenedor);
     }
+  }
 
-    function poblarMenuSeries() {
-      const select = document.getElementById("menuSeries");
-      [...nombresUnicos].sort().forEach(nombre => {
-        const opcion = document.createElement("option");
-        opcion.value = nombre;
-        opcion.textContent = nombre;
-        select.appendChild(opcion);
-      });
-    }
+  document.getElementById("buscador").addEventListener("input", () => {
+    currentPage = 1;
+    renderizarSeries();
+  });
+  document.getElementById("menuSeries").addEventListener("change", () => {
+    currentPage = 1;
+    renderizarSeries();
+  });
+  document.getElementById("ordenar").addEventListener("change", () => {
+    currentPage = 1;
+    renderizarSeries();
+  });
 
-    function renderizarSeries() {
-      const contenedor = document.getElementById("contenedorSeries");
-      contenedor.innerHTML = "";
+  cargarSeries();
+</script>
 
-      const filtroNombre = document.getElementById("buscador").value.toLowerCase();
-      const filtroSeleccionado = document.getElementById("menuSeries").value;
-      const orden = document.getElementById("ordenar").value;
 
-      let filtradas = todasLasSeries.filter(s => {
-        const coincideTexto = s.nombre.toLowerCase().includes(filtroNombre);
-        const coincideSeleccion = !filtroSeleccionado || s.nombre === filtroSeleccionado;
-        return coincideTexto && coincideSeleccion;
-      });
-
-      filtradas.sort((a, b) => {
-        if (orden === "az") return a.nombre.localeCompare(b.nombre);
-        else return b.nombre.localeCompare(a.nombre);
-      });
-
-      filtradas.forEach(serie => {
-        const card = document.createElement("div");
-        card.className = "serie-card";
-        card.innerHTML = `
-          <img src="${serie.imagen}" alt="Portada de ${serie.nombre}">
-          <div class="serie-info">
-            <h3>${serie.nombre}</h3>
-            <p>${serie.temporada}</p>
-            <a class="btn-ver" href="${serie.sitio}" target="_blank">Ver</a>
-          </div>
-        `;
-        contenedor.appendChild(card);
-      });
-    }
-
-    document.getElementById("buscador").addEventListener("input", renderizarSeries);
-    document.getElementById("menuSeries").addEventListener("change", renderizarSeries);
-    document.getElementById("ordenar").addEventListener("change", renderizarSeries);
-
-    cargarSeries();
-  </script>
 </body>
 </html>
