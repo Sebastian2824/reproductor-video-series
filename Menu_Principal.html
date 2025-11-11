@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Menú de Series | Leno Style</title>
+  <title>Series | Leno Style</title>
 
   <!-- Estilos base del tema Leno -->
   <link rel="stylesheet" href="css/bootstrap.css">
@@ -36,116 +36,172 @@ body {
   background: linear-gradient(90deg, #00bfd8 0%, #0072ff 100%);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
   z-index: 1100;
-  padding: 10px 24px;
+  padding: 8px 20px;
 }
 
-/* Contenedor interno: título | filtros | botón */
+/* Contenedor interno reorganizado */
 .header .header-row {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+  flex-direction: column;
+  gap: 8px;
   width: 100%;
 }
 
-/* Zona izquierda (Título) */
+/* Fila superior: Título + Botones */
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+/* Zona izquierda (Título reducido) */
 .header .left {
   display: flex;
   align-items: center;
-  gap: 12px;
-  min-width: 220px;
+  gap: 8px;
 }
 
 .logo-text {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   color: #ffffff;
   font-weight: 600;
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  white-space: nowrap;
 }
 
-/* Zona central (Filtros) */
-.header .center {
+/* Zona derecha (Botones compactos) */
+.header .right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Botones compactos */
+.btn-service {
+  background: #28a745;
+  color: #ffffff;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: none;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.25s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.btn-service:hover {
+  background: #218838;
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-service.cloudflare {
+  background: #ff6b35;
+}
+
+.btn-service.cloudflare:hover {
+  background: #e55a2b;
+}
+
+/* Botón cerrar sesión compacto */
+.btn-solid-sm {
+  background: #dc3545;
+  color: #ffffff;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: none;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.25s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.btn-solid-sm:hover {
+  background: #b02a37;
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  color: #ffffff;
+  text-decoration: none;
+}
+
+/* Indicador de servicio activo compacto */
+.service-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+  font-size: 0.7rem;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 3px 8px;
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+}
+
+.service-indicator i {
+  font-size: 0.75rem;
+}
+
+/* Fila inferior: Filtros */
+.header-bottom {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  flex: 1 1 auto;
-  max-width: 900px;
-  padding: 6px 12px;
+  width: 100%;
 }
 
 .filtros-inline {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: nowrap;
   overflow-x: auto;
-  padding-bottom: 2px;
+  padding: 4px 0;
 }
 
-/* Inputs y selects estilo Leno */
+/* Inputs y selects estilo Leno compactos */
 .leno-select,
 .leno-input {
-  border-radius: 30px;
+  border-radius: 20px;
   border: 2px solid rgba(255, 255, 255, 0.18);
   background: rgba(255, 255, 255, 0.95);
-  padding: 10px 16px;
-  font-size: 0.95rem;
+  padding: 6px 12px;
+  font-size: 0.85rem;
   color: #1f2937;
-  min-width: 200px;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+  min-width: 150px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
 }
 
 .leno-select:focus,
 .leno-input:focus {
   border-color: rgba(255, 255, 255, 0.95);
   outline: none;
-  box-shadow: 0 0 0 4px rgba(0, 191, 216, 0.12);
-}
-
-/* Zona derecha (Botón cerrar sesión rojo) */
-.header .right {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 160px;
-  justify-content: flex-end;
-}
-
-/* Botón rojo moderno */
-.btn-solid-sm {
-  background: #dc3545;
-  color: #ffffff;
-  font-weight: 600;
-  padding: 9px 18px;
-  border-radius: 30px;
-  border: none;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-  transition: all 0.25s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.btn-solid-sm:hover {
-  background: #b02a37;
-  transform: scale(1.05);
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 0 0 3px rgba(0, 191, 216, 0.12);
 }
 
 /* Icono del título */
 .logo-text .fa-film {
-  font-size: 1.05rem;
+  font-size: 0.9rem;
   opacity: 0.95;
 }
 
 /* =================== CONTENIDO PRINCIPAL =================== */
 .main-content {
-  margin-top: 86px;
+  margin-top: 100px;
   padding: 18px;
 }
 
@@ -153,7 +209,7 @@ body {
 .series-grid {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center; /* Centra las cards */
+  justify-content: center;
   gap: 30px;
   padding: 20px;
   margin-top: 10px;
@@ -165,7 +221,7 @@ body {
   border-radius: 20px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
   overflow: hidden;
-  width: 270px; /* tamaño fijo */
+  width: 270px;
   transition: all 0.3s ease;
   text-align: center;
 }
@@ -219,58 +275,125 @@ body {
 @media (max-width: 1100px) {
   .leno-select,
   .leno-input {
-    min-width: 180px;
+    min-width: 140px;
   }
 }
 
 @media (max-width: 900px) {
-  .header .header-row {
-    gap: 10px;
+  .header {
+    padding: 6px 16px;
   }
-  .center {
-    max-width: 600px;
-    padding: 0 8px;
-  }
+  
   .logo-text {
-    font-size: 1.05rem;
+    font-size: 1rem;
   }
-  .btn-solid-sm {
-    padding: 8px 14px;
-    font-size: 0.9rem;
+  
+  .btn-solid-sm, .btn-service {
+    padding: 5px 10px;
+    font-size: 0.75rem;
+  }
+  
+  .service-indicator {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header .header-row {
+    gap: 6px;
+  }
+  
+  .header-top {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .header .left {
+    flex: 1;
+  }
+  
+  .header .right {
+    justify-content: flex-end;
+  }
+  
+  .filtros-inline {
+    justify-content: flex-start;
+    padding-left: 0;
+  }
+  
+  .leno-select,
+  .leno-input {
+    min-width: 130px;
+    font-size: 0.8rem;
+    padding: 5px 10px;
+  }
+  
+  .main-content {
+    margin-top: 110px;
   }
 }
 
 @media (max-width: 640px) {
-  .header .header-row {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
+  .header {
+    padding: 5px 12px;
   }
-
-  .header .left {
-    justify-content: space-between;
+  
+  .logo-text {
+    font-size: 0.95rem;
   }
-
-  .center {
-    order: 2;
-    width: 100%;
+  
+  .btn-solid-sm, .btn-service {
+    padding: 4px 8px;
+    font-size: 0.7rem;
   }
-
-  .right {
-    order: 3;
-    justify-content: flex-end;
+  
+  .service-indicator {
+    font-size: 0.6rem;
+    padding: 2px 5px;
   }
-
+  
   .filtros-inline {
-    justify-content: flex-start;
-    padding-left: 6px;
+    gap: 6px;
   }
-
+  
   .leno-select,
   .leno-input {
-    min-width: 160px;
+    min-width: 120px;
+    font-size: 0.75rem;
   }
+  
+  .main-content {
+    margin-top: 115px;
+  }
+}
 
+@media (max-width: 480px) {
+  .header-top {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+  
+  .header .left {
+    justify-content: center;
+  }
+  
+  .header .right {
+    justify-content: center;
+  }
+  
+  .filtros-inline {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .leno-select,
+  .leno-input {
+    min-width: 45%;
+    flex: 1;
+  }
+  
   .main-content {
     margin-top: 140px;
   }
@@ -280,37 +403,46 @@ body {
 </head>
 
 <body>
- <!-- Encabezado adaptado al estilo Leno (sticky) -->
+ <!-- Encabezado reorganizado y compacto -->
 <header id="header" class="header">
   <div class="container header-row">
-    <!-- IZQUIERDA: Título -->
-    <div class="left">
-      <h1 class="logo-text m-0 fw-bold text-white">
-        <i class="fas fa-film"></i> Menú de Series
-      </h1>
+    <!-- Fila superior: Título + Botones compactos -->
+    <div class="header-top">
+      <!-- IZQUIERDA: Título reducido -->
+      <div class="left">
+        <h1 class="logo-text m-0 fw-bold text-white">
+          <i class="fas fa-film"></i> Series
+        </h1>
+        <span id="serviceIndicator" class="service-indicator">
+          <i class="fas fa-database"></i> Firebase
+        </span>
+      </div>
+
+      <!-- DERECHA: Botones compactos -->
+      <div class="right">
+        <button id="toggleService" class="btn-service">
+          <i class="fas fa-exchange-alt"></i> Cambiar servicio
+        </button>
+        <a href="index.html" class="btn-solid-sm">
+          <i class="fas fa-sign-out-alt"></i> Salir
+        </a>
+      </div>
     </div>
 
-    <!-- CENTRO: filtros (misma estructura y mismos ids que usas) -->
-    <div class="center">
+    <!-- Fila inferior: Filtros -->
+    <div class="header-bottom">
       <div class="filtros-inline">
         <select id="menuSeries" class="leno-select">
           <option value="">Todas las series</option>
         </select>
 
-        <input type="text" id="buscador" class="leno-input" placeholder="Buscar por nombre parcial...">
+        <input type="text" id="buscador" class="leno-input" placeholder="Buscar...">
 
         <select id="ordenar" class="leno-select">
           <option value="az">Orden A-Z</option>
           <option value="za">Orden Z-A</option>
         </select>
       </div>
-    </div>
-
-    <!-- DERECHA: Botón cerrar sesión -->
-    <div class="right">
-      <a href="index.html" class="btn-solid-sm">
-        <i class="fas fa-sign-out-alt"></i> Cerrar sesión
-      </a>
     </div>
   </div>
 </header>
@@ -325,8 +457,9 @@ body {
   <script src="js/bootstrap.bundle.min.js"></script>
   <script src="js/custom.js"></script>
 
-  <!-- Lógica Firebase y renderizado (sin cambios en ids ni lógica) -->
+  <!-- Lógica Firebase, Cloudflare y renderizado -->
   <script>
+  // Configuración de Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyB6MY2y5uyum87PdUHUpY8NNh4D73Yhx4U",
     authDomain: "animes-plus-89b93.firebaseapp.com",
@@ -337,46 +470,131 @@ body {
     measurementId: "G-DN632G7XJT"
   };
 
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+  // Configuración de Cloudflare
+  const CLOUDFLARE_ENDPOINT = 'https://proyecto-cloudflare.apiprueba2025.workers.dev'; // Reemplazar con tu endpoint real
+
+  // Estado de la aplicación
+  let servicioActivo = 'firebase'; // 'firebase' o 'cloudflare'
   let todasLasSeries = [];
   let nombresUnicos = new Set();
   const ITEMS_POR_PAGINA = 9;
   let currentPage = 1;
 
+  // Inicializar Firebase
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  // Función para cambiar entre servicios
+  function toggleServicio() {
+    if (servicioActivo === 'firebase') {
+      servicioActivo = 'cloudflare';
+      document.getElementById('toggleService').innerHTML = '<i class="fas fa-exchange-alt"></i> Cambiar servicio';
+      document.getElementById('toggleService').classList.add('cloudflare');
+      document.getElementById('serviceIndicator').innerHTML = '<i class="fas fa-cloud"></i> Cloudflare';
+    } else {
+      servicioActivo = 'firebase';
+      document.getElementById('toggleService').innerHTML = '<i class="fas fa-exchange-alt"></i> Cambiar servicio';
+      document.getElementById('toggleService').classList.remove('cloudflare');
+      document.getElementById('serviceIndicator').innerHTML = '<i class="fas fa-database"></i> Firebase';
+    }
+    
+    // Recargar datos con el nuevo servicio
+    currentPage = 1;
+    cargarSeries();
+  }
+
+  // Función para cargar series según el servicio activo
   async function cargarSeries() {
-    const snapshotSeries = await db.collection("animes-series-portadas").get();
-    const datosTemporales = [];
+    if (servicioActivo === 'firebase') {
+      await cargarSeriesFirebase();
+    } else {
+      await cargarSeriesCloudflare();
+    }
+  }
 
-    for (const docSerie of snapshotSeries.docs) {
-      const nombreSerie = docSerie.id;
-      nombresUnicos.add(nombreSerie);
+  // Función para cargar series desde Firebase
+  async function cargarSeriesFirebase() {
+    try {
+      const snapshotSeries = await db.collection("animes-series-portadas").get();
+      const datosTemporales = [];
 
-      const snapshotTemporadas = await db.collection("animes-series-portadas")
-        .doc(nombreSerie).collection("Temporadas").get();
+      for (const docSerie of snapshotSeries.docs) {
+        const nombreSerie = docSerie.id;
+        nombresUnicos.add(nombreSerie);
 
-      snapshotTemporadas.forEach(docTemporada => {
-        const temporada = docTemporada.id;
-        const data = docTemporada.data();
-        const imagen = data.imagen || "https://via.placeholder.com/300x400?text=Sin+Imagen";
-        const sitio = data.sitio02 || "#";
+        const snapshotTemporadas = await db.collection("animes-series-portadas")
+          .doc(nombreSerie).collection("Temporadas").get();
 
+        snapshotTemporadas.forEach(docTemporada => {
+          const temporada = docTemporada.id;
+          const data = docTemporada.data();
+          const imagen = data.imagen || "https://via.placeholder.com/300x400?text=Sin+Imagen";
+          const sitio = data.sitio02 || "#";
+
+          datosTemporales.push({
+            nombre: nombreSerie,
+            temporada: temporada,
+            imagen: imagen,
+            sitio: sitio
+          });
+        });
+      }
+
+      todasLasSeries = datosTemporales;
+      poblarMenuSeries();
+      renderizarSeries();
+    } catch (error) {
+      console.error("Error cargando desde Firebase:", error);
+      // Si hay error, intentar con Cloudflare
+      if (servicioActivo === 'firebase') {
+        alert("Error al conectar con Firebase. Cambiando a Cloudflare...");
+        toggleServicio();
+      }
+    }
+  }
+
+  // Función para cargar series desde Cloudflare
+  async function cargarSeriesCloudflare() {
+    try {
+      const response = await fetch(`${CLOUDFLARE_ENDPOINT}/portadas`);
+      
+      if (!response.ok) {
+        throw new Error(`Error HTTP: ${response.status}`);
+      }
+      
+      const portadas = await response.json();
+      const datosTemporales = [];
+
+      // Procesar datos de Cloudflare
+      portadas.forEach(portada => {
+        const nombreSerie = portada.nombreSerie;
+        nombresUnicos.add(nombreSerie);
+        
         datosTemporales.push({
           nombre: nombreSerie,
-          temporada: temporada,
-          imagen: imagen,
-          sitio: sitio
+          temporada: portada.temporada,
+          imagen: portada.imagen || "https://via.placeholder.com/300x400?text=Sin+Imagen",
+          sitio: portada.sitio02 || "#"
         });
       });
-    }
 
-    todasLasSeries = datosTemporales;
-    poblarMenuSeries();
-    renderizarSeries();
+      todasLasSeries = datosTemporales;
+      poblarMenuSeries();
+      renderizarSeries();
+    } catch (error) {
+      console.error("Error cargando desde Cloudflare:", error);
+      // Si hay error, intentar con Firebase
+      if (servicioActivo === 'cloudflare') {
+        alert("Error al conectar con Cloudflare. Cambiando a Firebase...");
+        toggleServicio();
+      }
+    }
   }
 
   function poblarMenuSeries() {
     const select = document.getElementById("menuSeries");
+    select.innerHTML = '<option value="">Todas las series</option>';
+    
     [...nombresUnicos].sort().forEach(nombre => {
       const opcion = document.createElement("option");
       opcion.value = nombre;
@@ -406,7 +624,7 @@ body {
 
     // Paginación
     const totalPaginas = Math.ceil(filtradas.length / ITEMS_POR_PAGINA);
-    if (currentPage > totalPaginas) currentPage = totalPaginas;
+    if (currentPage > totalPaginas) currentPage = 1;
 
     const inicio = (currentPage - 1) * ITEMS_POR_PAGINA;
     const paginadas = filtradas.slice(inicio, inicio + ITEMS_POR_PAGINA);
@@ -485,6 +703,8 @@ body {
     }
   }
 
+  // Event Listeners
+  document.getElementById("toggleService").addEventListener("click", toggleServicio);
   document.getElementById("buscador").addEventListener("input", () => {
     currentPage = 1;
     renderizarSeries();
@@ -498,9 +718,8 @@ body {
     renderizarSeries();
   });
 
+  // Cargar datos iniciales
   cargarSeries();
 </script>
-
-
 </body>
 </html>

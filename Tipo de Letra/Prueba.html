@@ -16,37 +16,88 @@
   }
 
   .filtros {
-  background: rgba(255, 255, 255, 0.8);
-  padding: 20px 30px;
-  border-radius: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  margin-bottom: 30px;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 15px;
-  transition: all 0.3s ease;
-}
+    background: rgba(255, 255, 255, 0.8);
+    padding: 20px 30px;
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    transition: all 0.3s ease;
+  }
 
-.filtros input[type="text"],
-.filtros select {
-  padding: 10px 16px;
-  border-radius: 15px;
-  border: 1px solid #b0d6ff;
-  background-color: #f8fbff;
-  font-size: 16px;
-  color: #014c8c;
-  box-shadow: 0 2px 6px rgba(0, 76, 140, 0.1);
-  transition: box-shadow 0.3s ease, border 0.3s ease;
-  outline: none;
-  width: 280px;
-}
+  .selector-servicio {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 180px;
+    padding-right: 20px;
+    border-right: 1px solid #e0e0e0;
+  }
 
-.filtros input[type="text"]:focus,
-.filtros select:focus {
-  border-color: #5c94ff;
-  box-shadow: 0 0 8px rgba(92, 148, 255, 0.4);
-}
+  .botones-servicio {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 5px;
+  }
+
+  .selector-servicio button {
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: none;
+    background: #014c8c;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    white-space: nowrap;
+  }
+
+  .selector-servicio button:hover {
+    background: #0360b2;
+  }
+
+  .selector-servicio button.activo {
+    background: #5c94ff;
+    box-shadow: 0 0 8px rgba(92, 148, 255, 0.6);
+  }
+
+  .estado-servicio {
+    font-weight: bold;
+    color: #014c8c;
+    font-size: 14px;
+    text-align: left;
+    width: 100%;
+  }
+
+  .contenedor-filtros {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex: 1;
+  }
+
+  .filtros input[type="text"],
+  .filtros select {
+    padding: 10px 16px;
+    border-radius: 15px;
+    border: 1px solid #b0d6ff;
+    background-color: #f8fbff;
+    font-size: 16px;
+    color: #014c8c;
+    box-shadow: 0 2px 6px rgba(0, 76, 140, 0.1);
+    transition: box-shadow 0.3s ease, border 0.3s ease;
+    outline: none;
+    width: 280px;
+  }
+
+  .filtros input[type="text"]:focus,
+  .filtros select:focus {
+    border-color: #5c94ff;
+    box-shadow: 0 0 8px rgba(92, 148, 255, 0.4);
+  }
+
   input[type="text"], select {
     padding: 8px;
     width: 280px;
@@ -171,70 +222,81 @@
   }
 
   .navegacion-contenedor {
-  background: rgba(255, 255, 255, 0.8);
-  padding: 20px 30px;
-  border-radius: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  margin: 40px auto 20px auto;
-  max-width: 600px;
-  display: flex;
-  justify-content: center;
-}
+    background: rgba(255, 255, 255, 0.8);
+    padding: 20px 30px;
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin: 40px auto 20px auto;
+    max-width: 600px;
+    display: flex;
+    justify-content: center;
+  }
 
-.navegacion {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 20px;
-}
+  .navegacion {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
 
-.navegacion button {
-  padding: 10px 24px;
-  font-size: 15px;
-  background: #014c8c;
-  color: white;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: background 0.3s ease, transform 0.2s ease;
-  box-shadow: 0 2px 6px rgba(0, 76, 140, 0.2);
-}
+  .navegacion button {
+    padding: 10px 24px;
+    font-size: 15px;
+    background: #014c8c;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0, 76, 140, 0.2);
+  }
 
-.navegacion button:hover {
-  background: #0360b2;
-  transform: scale(1.03);
-}
+  .navegacion button:hover {
+    background: #0360b2;
+    transform: scale(1.03);
+  }
 
-#infoPagina {
-  font-weight: bold;
-  font-size: 16px;
-  color: #002d80;
-}
+  #infoPagina {
+    font-weight: bold;
+    font-size: 16px;
+    color: #002d80;
+  }
 
-</style>
+  </style>
 
 </head>
 <body>
-   <div class="filtros">
-    <input type="text" id="buscador" placeholder="Buscar serie por nombre...">
-    <select id="nombreSelector"></select>
+  <div class="filtros">
+    <!-- Selector de servicio en el costado izquierdo -->
+    <div class="selector-servicio">
+      <div class="botones-servicio">
+        <button id="btnFirebase" class="activo" onclick="cambiarServicio('firebase')">Firebase</button>
+        <button id="btnCloudflare" onclick="cambiarServicio('cloudflare')">Cloudflare</button>
+      </div>
+      <div class="estado-servicio" id="estadoServicio">Servicio: Firebase</div>
+    </div>
+    
+    <!-- Filtros originales en línea -->
+    <div class="contenedor-filtros">
+      <input type="text" id="buscador" placeholder="Buscar serie por nombre...">
+      <select id="nombreSelector"></select>
+    </div>
   </div>
 
   <div class="contenedor-cards" id="cardsContainer"></div>
 
   <div class="navegacion-contenedor">
-  <div class="navegacion">
-    <button onclick="paginaAnterior()">&#8592; Anterior</button>
-    <span id="infoPagina"></span>
-    <button onclick="paginaSiguiente()">Siguiente &#8594;</button>
+    <div class="navegacion">
+      <button onclick="paginaAnterior()">&#8592; Anterior</button>
+      <span id="infoPagina"></span>
+      <button onclick="paginaSiguiente()">Siguiente &#8594;</button>
+    </div>
   </div>
-</div>
-
-
 
   <script>
-   const firebaseConfig = {
+    // Configuración de servicios
+    const firebaseConfig = {
       apiKey: "AIzaSyB6MY2y5uyum87PdUHUpY8NNh4D73Yhx4U",
       authDomain: "animes-plus-89b93.firebaseapp.com",
       projectId: "animes-plus-89b93",
@@ -243,168 +305,278 @@
       appId: "1:402867181985:web:d695b12977fe4270dbd3e0",
       measurementId: "G-DN632G7XJT"
     };
-    firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+    
+    // Configuración de Cloudflare
+    const cloudflareConfig = {
+      baseURL: 'https://proyecto-cloudflare.apiprueba2025.workers.dev', // Reemplaza con tu URL de Cloudflare
+      endpoints: {
+        indiceSeries: '/indice-series',
+        buscarIndice: '/buscar-indice'
+      }
+    };
 
-let series = [];
-let todas = [];
-let pagina = 0;
-const porPagina = 10;
-const letraActual = 'p'; // ← Letra fija
+    // Variables globales
+    let servicioActual = 'firebase';
+    let firebaseInicializado = false;
+    let db;
+    let series = [];
+    let todas = [];
+    let pagina = 0;
+    const porPagina = 10;
+    const letraActual = 'p'; // ← Letra fija
 
-async function cargarSeries() {
-  const snapshot = await db.collection("animes-series-indice").get();
-  todas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    // Inicializar Firebase
+    function inicializarFirebase() {
+      if (!firebaseInicializado) {
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.firestore();
+        firebaseInicializado = true;
+      }
+    }
 
-  // Filtra por la letra específica
-  series = todas.filter(serie => serie.id.toLowerCase().startsWith(letraActual));
-  pagina = 0;
+    // Cambiar entre servicios
+    function cambiarServicio(servicio) {
+      servicioActual = servicio;
+      
+      // Actualizar botones
+      document.getElementById('btnFirebase').classList.toggle('activo', servicio === 'firebase');
+      document.getElementById('btnCloudflare').classList.toggle('activo', servicio === 'cloudflare');
+      
+      // Actualizar estado
+      document.getElementById('estadoServicio').textContent = `Servicio: ${servicio === 'firebase' ? 'Firebase' : 'Cloudflare'}`;
+      
+      // Recargar datos
+      cargarSeries();
+    }
 
-  const nombreSelector = document.getElementById("nombreSelector");
+    // Función para obtener datos de Cloudflare
+    async function obtenerDeCloudflare(endpoint, params = {}) {
+      try {
+        let url = cloudflareConfig.baseURL + endpoint;
+        
+        // Agregar parámetros si existen
+        if (Object.keys(params).length > 0) {
+          const queryParams = new URLSearchParams(params);
+          url += '?' + queryParams.toString();
+        }
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+          throw new Error(`Error HTTP: ${response.status}`);
+        }
+        
+        return await response.json();
+      } catch (error) {
+        console.error('Error al obtener datos de Cloudflare:', error);
+        throw error;
+      }
+    }
 
-  // Armar el <select> desde cero
-  let opciones = `<option value="">Todas las series con la letra "${letraActual.toUpperCase()}"</option>`;
-  opciones += series.map(s => `<option value="${s.id}">${s.id}</option>`).join('');
-  nombreSelector.innerHTML = opciones;
-  nombreSelector.selectedIndex = 0;
+    // Cargar series desde el servicio activo
+    async function cargarSeries() {
+      try {
+        if (servicioActual === 'firebase') {
+          await cargarDesdeFirebase();
+        } else {
+          await cargarDesdeCloudflare();
+        }
+      } catch (error) {
+        console.error(`Error al cargar desde ${servicioActual}:`, error);
+        
+        // Intentar con el otro servicio si falla
+        const servicioAlternativo = servicioActual === 'firebase' ? 'cloudflare' : 'firebase';
+        console.log(`Intentando con ${servicioAlternativo}...`);
+        
+        cambiarServicio(servicioAlternativo);
+      }
+    }
 
-  mostrarPagina();
-}
+    // Cargar desde Firebase
+    async function cargarDesdeFirebase() {
+      inicializarFirebase();
+      const snapshot = await db.collection("animes-series-indice").get();
+      todas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-document.getElementById("nombreSelector").addEventListener("change", e => {
-  const seleccion = e.target.value;
-  pagina = 0;
+      // Filtra por la letra específica
+      series = todas.filter(serie => serie.id.toLowerCase().startsWith(letraActual));
+      pagina = 0;
+      actualizarSelector();
+      mostrarPagina();
+    }
 
-  if (seleccion === "") {
-    mostrarPagina(); // ← Muestra todas si es la opción de ver todas
-    return;
-  }
+    // Cargar desde Cloudflare
+    async function cargarDesdeCloudflare() {
+      const datos = await obtenerDeCloudflare(cloudflareConfig.endpoints.indiceSeries);
+      
+      // Mapear datos de Cloudflare al formato esperado
+      todas = datos.map(item => ({
+        id: item.nombreSerie,
+        nombresec: item.nombresec,
+        nombresec02: item.nombresec02,
+        año: item.año,
+        categoria: item.categoria,
+        idioma: item.idioma,
+        imagen: item.imagen,
+        sitio: item.sitio
+      }));
 
-  // Mostrar solo la serie seleccionada
-  const contenedor = document.getElementById("cardsContainer");
-  contenedor.innerHTML = "";
+      // Filtra por la letra específica
+      series = todas.filter(serie => serie.id.toLowerCase().startsWith(letraActual));
+      pagina = 0;
+      actualizarSelector();
+      mostrarPagina();
+    }
 
-  const filtradas = series.filter(s => s.id === seleccion);
+    // Actualizar selector de nombres
+    function actualizarSelector() {
+      const nombreSelector = document.getElementById("nombreSelector");
 
-  filtradas.forEach((s, i) => {
-    const wrapper = document.createElement("div");
-    wrapper.className = "carta-wrapper";
-    if (i % 2 === 1) wrapper.classList.add("carta-superpuesta");
+      // Armar el <select> desde cero
+      let opciones = `<option value="">Todas las series con la letra "${letraActual.toUpperCase()}"</option>`;
+      opciones += series.map(s => `<option value="${s.id}">${s.id}</option>`).join('');
+      nombreSelector.innerHTML = opciones;
+      nombreSelector.selectedIndex = 0;
+    }
 
-    const card = document.createElement("div");
-    card.className = "card";
-    card.innerHTML = `
-      <div class="card-imagen">
-        <img src="${s.imagen}" alt="${s.nombresec}" />
-      </div>
-      <div class="card-contenido">
-        <div class="nombre-id">${s.id}</div>
-        <div class="titulo">${s.nombresec}</div>
-        <div class="subtitulo">${s.nombresec02 || ""}</div>
-        <div class="subtitulo">${s.año} - ${s.idioma}</div>
-        <div class="etiquetas">
-          ${s.categoria.split(',').map(c => `<span>${c.trim()}</span>`).join('')}
-        </div>
-        <button class="boton-ver" onclick="window.open('${s.sitio}', '_blank')">Ver Ahora</button>
-      </div>
-    `;
-    wrapper.appendChild(card);
-    contenedor.appendChild(wrapper);
-  });
-});
+    // Manejar cambio en el selector de nombres
+    document.getElementById("nombreSelector").addEventListener("change", e => {
+      const seleccion = e.target.value;
+      pagina = 0;
 
-function mostrarPagina() {
-  const contenedor = document.getElementById("cardsContainer");
-  contenedor.innerHTML = "";
-  const inicio = pagina * porPagina;
-  const fin = inicio + porPagina;
-  const filtradas = series.slice(inicio, fin);
+      if (seleccion === "") {
+        mostrarPagina(); // ← Muestra todas si es la opción de ver todas
+        return;
+      }
 
-  filtradas.forEach((s, i) => {
-    const wrapper = document.createElement("div");
-    wrapper.className = "carta-wrapper";
-    if (i % 2 === 1) wrapper.classList.add("carta-superpuesta");
+      // Mostrar solo la serie seleccionada
+      const contenedor = document.getElementById("cardsContainer");
+      contenedor.innerHTML = "";
 
-    const card = document.createElement("div");
-    card.className = "card";
-    card.innerHTML = `
-      <div class="card-imagen">
-        <img src="${s.imagen}" alt="${s.nombresec}" />
-      </div>
-      <div class="card-contenido">
-        <div class="nombre-id">${s.id}</div>
-        <div class="titulo">${s.nombresec}</div>
-        <div class="subtitulo">${s.nombresec02 || ""}</div>
-        <div class="subtitulo">${s.año} - ${s.idioma}</div>
-        <div class="etiquetas">
-          ${s.categoria.split(',').map(c => `<span>${c.trim()}</span>`).join('')}
-        </div>
-        <button class="boton-ver" onclick="window.open('${s.sitio}', '_blank')">Ver Ahora</button>
-      </div>
-    `;
-    wrapper.appendChild(card);
-    contenedor.appendChild(wrapper);
-  });
+      const filtradas = series.filter(s => s.id === seleccion);
 
-  actualizarInfoPagina(); // ← Agregado aquí
-}
+      filtradas.forEach((s, i) => {
+        const wrapper = document.createElement("div");
+        wrapper.className = "carta-wrapper";
+        if (i % 2 === 1) wrapper.classList.add("carta-superpuesta");
 
-function actualizarInfoPagina() {
-  const totalPaginas = Math.ceil(series.length / porPagina);
-  document.getElementById("infoPagina").textContent = `Página ${pagina + 1} de ${totalPaginas}`;
-}
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="card-imagen">
+            <img src="${s.imagen}" alt="${s.nombresec}" />
+          </div>
+          <div class="card-contenido">
+            <div class="nombre-id">${s.id}</div>
+            <div class="titulo">${s.nombresec}</div>
+            <div class="subtitulo">${s.nombresec02 || ""}</div>
+            <div class="subtitulo">${s.año} - ${s.idioma}</div>
+            <div class="etiquetas">
+              ${s.categoria.split(',').map(c => `<span>${c.trim()}</span>`).join('')}
+            </div>
+            <button class="boton-ver" onclick="window.open('${s.sitio}', '_blank')">Ver Ahora</button>
+          </div>
+        `;
+        wrapper.appendChild(card);
+        contenedor.appendChild(wrapper);
+      });
+    });
 
+    // Mostrar página actual
+    function mostrarPagina() {
+      const contenedor = document.getElementById("cardsContainer");
+      contenedor.innerHTML = "";
+      const inicio = pagina * porPagina;
+      const fin = inicio + porPagina;
+      const filtradas = series.slice(inicio, fin);
 
-function paginaSiguiente() {
-  if ((pagina + 1) * porPagina < series.length) {
-    pagina++;
-    mostrarPagina();
-  }
-}
+      filtradas.forEach((s, i) => {
+        const wrapper = document.createElement("div");
+        wrapper.className = "carta-wrapper";
+        if (i % 2 === 1) wrapper.classList.add("carta-superpuesta");
 
-function paginaAnterior() {
-  if (pagina > 0) {
-    pagina--;
-    mostrarPagina();
-  }
-}
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="card-imagen">
+            <img src="${s.imagen}" alt="${s.nombresec}" />
+          </div>
+          <div class="card-contenido">
+            <div class="nombre-id">${s.id}</div>
+            <div class="titulo">${s.nombresec}</div>
+            <div class="subtitulo">${s.nombresec02 || ""}</div>
+            <div class="subtitulo">${s.año} - ${s.idioma}</div>
+            <div class="etiquetas">
+              ${s.categoria.split(',').map(c => `<span>${c.trim()}</span>`).join('')}
+            </div>
+            <button class="boton-ver" onclick="window.open('${s.sitio}', '_blank')">Ver Ahora</button>
+          </div>
+        `;
+        wrapper.appendChild(card);
+        contenedor.appendChild(wrapper);
+      });
 
-document.getElementById("buscador").addEventListener("input", e => {
-  const texto = e.target.value.toLowerCase();
-  pagina = 0;
-  const contenedor = document.getElementById("cardsContainer");
-  contenedor.innerHTML = "";
+      actualizarInfoPagina();
+    }
 
-  const resultados = series.filter(s => s.id.toLowerCase().includes(texto));
-  resultados.slice(0, porPagina).forEach((s, i) => {
-    const wrapper = document.createElement("div");
-    wrapper.className = "carta-wrapper";
-    if (i % 2 === 1) wrapper.classList.add("carta-superpuesta");
+    // Actualizar información de página
+    function actualizarInfoPagina() {
+      const totalPaginas = Math.ceil(series.length / porPagina);
+      document.getElementById("infoPagina").textContent = `Página ${pagina + 1} de ${totalPaginas}`;
+    }
 
-    const card = document.createElement("div");
-    card.className = "card";
-    card.innerHTML = `
-      <div class="card-imagen">
-        <img src="${s.imagen}" alt="${s.nombresec}" />
-      </div>
-      <div class="card-contenido">
-        <div class="nombre-id">${s.id}</div>
-        <div class="titulo">${s.nombresec}</div>
-        <div class="subtitulo">${s.nombresec02 || ""}</div>
-        <div class="subtitulo">${s.año} - ${s.idioma}</div>
-        <div class="etiquetas">
-          ${s.categoria.split(',').map(c => `<span>${c.trim()}</span>`).join('')}
-        </div>
-        <button class="boton-ver" onclick="window.open('${s.sitio}', '_blank')">Ver Ahora</button>
-      </div>
-    `;
-    wrapper.appendChild(card);
-    contenedor.appendChild(wrapper);
-  });
-});
+    // Navegación de páginas
+    function paginaSiguiente() {
+      if ((pagina + 1) * porPagina < series.length) {
+        pagina++;
+        mostrarPagina();
+      }
+    }
 
-cargarSeries(); // ← Ejecutar al inicio
+    function paginaAnterior() {
+      if (pagina > 0) {
+        pagina--;
+        mostrarPagina();
+      }
+    }
 
+    // Búsqueda en tiempo real
+    document.getElementById("buscador").addEventListener("input", e => {
+      const texto = e.target.value.toLowerCase();
+      pagina = 0;
+      const contenedor = document.getElementById("cardsContainer");
+      contenedor.innerHTML = "";
+
+      const resultados = series.filter(s => s.id.toLowerCase().includes(texto));
+      resultados.slice(0, porPagina).forEach((s, i) => {
+        const wrapper = document.createElement("div");
+        wrapper.className = "carta-wrapper";
+        if (i % 2 === 1) wrapper.classList.add("carta-superpuesta");
+
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="card-imagen">
+            <img src="${s.imagen}" alt="${s.nombresec}" />
+          </div>
+          <div class="card-contenido">
+            <div class="nombre-id">${s.id}</div>
+            <div class="titulo">${s.nombresec}</div>
+            <div class="subtitulo">${s.nombresec02 || ""}</div>
+            <div class="subtitulo">${s.año} - ${s.idioma}</div>
+            <div class="etiquetas">
+              ${s.categoria.split(',').map(c => `<span>${c.trim()}</span>`).join('')}
+            </div>
+            <button class="boton-ver" onclick="window.open('${s.sitio}', '_blank')">Ver Ahora</button>
+          </div>
+        `;
+        wrapper.appendChild(card);
+        contenedor.appendChild(wrapper);
+      });
+    });
+
+    // Inicializar la aplicación
+    cargarSeries();
   </script>
 </body>
 </html>

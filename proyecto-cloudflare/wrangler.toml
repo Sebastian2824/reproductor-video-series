@@ -1,0 +1,11 @@
+name = "proyecto-cloudflare"
+main = "src/index.js"
+compatibility_date = "2025-11-09"
+
+[observability]
+enabled = true
+
+[[d1_databases]]
+binding = "animes_plus"
+database_name = "animes-plus"
+database_id = "2975adfb-312f-4afe-a117-59db1310f8e9"
