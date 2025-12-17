@@ -471,7 +471,7 @@ body {
   };
 
   // Configuración de Cloudflare
-  const CLOUDFLARE_ENDPOINT = 'https://proyecto-cloudflare.apiprueba2025.workers.dev'; // Reemplazar con tu endpoint real
+  const CLOUDFLARE_ENDPOINT = 'https://proyecto-cloudflare.apiprueba2025.workers.dev';
 
   // Estado de la aplicación
   let servicioActivo = 'firebase'; // 'firebase' o 'cloudflare'
@@ -526,14 +526,20 @@ body {
           .doc(nombreSerie).collection("Temporadas").get();
 
         snapshotTemporadas.forEach(docTemporada => {
-          const temporada = docTemporada.id;
+          const temporadaCompleta = docTemporada.id; // Esto ya incluye "Temporada 01 - Sub Español"
           const data = docTemporada.data();
           const imagen = data.imagen || "https://via.placeholder.com/300x400?text=Sin+Imagen";
-          const sitio = data.sitio02 || "#";
+          
+          // IMPORTANTE: Ya NO extraemos idioma separado porque ya está en "temporadaCompleta"
+          // El formato ya es: "Temporada 01 - Sub Español"
+          
+          // Crear URL para el reproductor universal
+          // Enviamos la temporada completa como está
+          const sitio = `reproductor_universal.html?serie=${encodeURIComponent(nombreSerie)}&temporada=${encodeURIComponent(temporadaCompleta)}`;
 
           datosTemporales.push({
             nombre: nombreSerie,
-            temporada: temporada,
+            temporadaCompleta: temporadaCompleta, // "Temporada 01 - Sub Español"
             imagen: imagen,
             sitio: sitio
           });
@@ -570,11 +576,17 @@ body {
         const nombreSerie = portada.nombreSerie;
         nombresUnicos.add(nombreSerie);
         
+        // En Cloudflare también asumimos que ya viene con idioma
+        const temporadaCompleta = portada.temporada; // "Temporada 01 - Sub Español"
+        
+        // Crear URL para el reproductor universal
+        const sitio = `reproductor_universal.html?serie=${encodeURIComponent(nombreSerie)}&temporada=${encodeURIComponent(temporadaCompleta)}`;
+        
         datosTemporales.push({
           nombre: nombreSerie,
-          temporada: portada.temporada,
+          temporadaCompleta: temporadaCompleta, // "Temporada 01 - Sub Español"
           imagen: portada.imagen || "https://via.placeholder.com/300x400?text=Sin+Imagen",
-          sitio: portada.sitio02 || "#"
+          sitio: sitio
         });
       });
 
@@ -636,8 +648,8 @@ body {
         <img src="${serie.imagen}" alt="Portada de ${serie.nombre}">
         <div class="serie-info">
           <h3>${serie.nombre}</h3>
-          <p>${serie.temporada}</p>
-          <a class="btn-ver" href="${serie.sitio}" target="_blank">Ver</a>
+          <p>${serie.temporadaCompleta}</p>
+          <a class="btn-ver" href="${serie.sitio}">Ver</a>
         </div>
       `;
       contenedor.appendChild(card);

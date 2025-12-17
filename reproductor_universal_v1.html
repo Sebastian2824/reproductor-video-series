@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Reproductor estilo YouTube - Firebase</title>
+  <title>Reproductor Universal</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
      body {
@@ -167,7 +167,27 @@
       color: #666;
     }
 
-    /* ======= NUEVO: ESTILOS PARA BOTÓN DE SERVICIO ======= */
+    /* ======= NUEVO: BOTÓN VOLVER AL CATÁLOGO ======= */
+    .back-button {
+      background: #6c757d;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 30px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 15px;
+    }
+
+    .back-button:hover {
+      background: #5a6268;
+    }
+
+    /* ======= ESTILOS PARA BOTÓN DE SERVICIO ======= */
     .service-toggle {
       display: flex;
       align-items: center;
@@ -409,6 +429,11 @@
 <body>
   <div class="container">
     <div class="main-player">
+      <!-- Botón para volver al catálogo -->
+      <button class="back-button" onclick="volverAlCatalogo()">
+        ← Volver al Catálogo
+      </button>
+      
       <div class="controls-bar">
         <select class="episode-selector" onchange="selectEpisode(this.value)"></select>
         <div>
@@ -423,14 +448,14 @@
     <!-- LISTA DE EPISODIOS -->
     <div class="sidebar" id="sidebar">
       <div class="sidebar-header">
-        <h2 id="serieTitle">Serie</h2>
+        <h2 id="serieTitle">Cargando serie...</h2>
         <div class="sub-info">
-          <span id="seasonLang">Temporada | Idioma</span>
+          <span id="seasonLang">Cargando...</span>
           <span id="episodeCount">0 episodios</span>
         </div>
         <select class="server-select" id="serverSelect" onchange="changeVideo(this.value)"></select>
         
-        <!-- NUEVO: BOTÓN DE CAMBIO DE SERVICIO -->
+        <!-- BOTÓN DE CAMBIO DE SERVICIO -->
         <div class="service-toggle">
           <span class="service-toggle-label">Servicio:</span>
           <button class="service-toggle-btn" id="serviceToggleBtn" onclick="toggleService()">Cambiar a Cloudflare</button>
@@ -444,7 +469,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
   <script>
-    /* ==================== CONFIGURACIÓN FIREBASE ==================== */
+    /* ==================== CONFIGURACIÓN ==================== */
     const firebaseConfig = {
       apiKey: "AIzaSyB6MY2y5uyum87PdUHUpY8NNh4D73Yhx4U",
       authDomain: "animes-plus-89b93.firebaseapp.com",
@@ -455,20 +480,74 @@
       measurementId: "G-DN632G7XJT"
     };
 
-    const nombreSerie = "Karakai no Jouzu Takagisan";
-    const temporada = "Movie 01";
-    const idioma = "Sub Español";
-
-     // URL base para Cloudflare Workers
+    // URL base para Cloudflare Workers (misma que en Menu_Principal)
     const CLOUDFLARE_BASE_URL = "https://proyecto-cloudflare.apiprueba2025.workers.dev";
 
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
+    // Variables globales dinámicas
+    let nombreSerie = "";
+    let temporada = "";
+    let idioma = ""; // Ahora es dinámico
+    
     let episodios = [];
     let currentEpisode = 0;
     let servidorActivo = null;
     let servicioActivo = 'firebase'; // 'firebase' o 'cloudflare'
+
+    // Inicializar Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    /* ==================== FUNCIONES DE NAVEGACIÓN ==================== */
+    function volverAlCatalogo() {
+      window.location.href = "Menu_Principal.html";
+    }
+
+    function obtenerParametrosURL() {
+      const urlParams = new URLSearchParams(window.location.search);
+      nombreSerie = urlParams.get('serie') || "";
+      
+      // Obtener temporada e idioma juntos (ej: "Temporada 01 - Sub Español")
+      const tempIdioma = urlParams.get('temporada') || "";
+      
+      // Separar temporada e idioma
+      if (tempIdioma.includes(" - ")) {
+        const partes = tempIdioma.split(" - ");
+        temporada = partes[0] || "";
+        idioma = partes[1] || "Sub Español"; // Default si no hay idioma
+      } else {
+        // Si no viene con el formato esperado, asumimos que es solo temporada
+        temporada = tempIdioma;
+        idioma = "Sub Español"; // Idioma por defecto
+      }
+      
+      // Si no hay parámetros esenciales, mostrar error
+      if (!nombreSerie || !temporada) {
+        mostrarError("No se especificó la serie o temporada");
+        return false;
+      }
+      
+      // Actualizar título de la página
+      document.title = `${nombreSerie} - ${temporada}`;
+      
+      return true;
+    }
+
+    function mostrarError(mensaje) {
+      const videoContainer = document.getElementById('videoContainer');
+      videoContainer.innerHTML = `
+        <div style="padding: 40px; text-align: center; background: #fff3cd; border-radius: 10px; color: #856404;">
+          <h3 style="margin-top: 0;">⚠️ Error</h3>
+          <p>${mensaje}</p>
+          <button onclick="volverAlCatalogo()" style="margin-top: 15px; padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            Volver al catálogo
+          </button>
+        </div>
+      `;
+      
+      document.getElementById("serieTitle").textContent = "Error";
+      document.getElementById("seasonLang").textContent = "Parámetros incorrectos";
+      document.getElementById("episodeCount").textContent = "0 episodios";
+    }
 
     /* ==================== FUNCIONES DE SERVICIO ==================== */
     function toggleService() {
@@ -493,6 +572,11 @@
     }
 
     async function cargarEpisodios() {
+      if (!obtenerParametrosURL()) return;
+      
+      // Mostrar mensaje de carga
+      mostrarMensajeCarga();
+      
       if (servicioActivo === 'firebase') {
         await cargarEpisodiosDesdeFirebase();
       } else {
@@ -500,9 +584,46 @@
       }
     }
 
+    function mostrarMensajeCarga() {
+      const videoContainer = document.getElementById('videoContainer');
+      videoContainer.innerHTML = `
+        <div style="padding: 40px; text-align: center; background: #e9ecef; border-radius: 10px;">
+          <div style="margin-bottom: 15px;">⏳</div>
+          <h3 style="margin-top: 0; color: #003a73;">Cargando episodios...</h3>
+          <p>${nombreSerie}</p>
+          <p>${temporada} - ${idioma}</p>
+          <p style="font-size: 12px; color: #666;">Servicio: ${servicioActivo === 'firebase' ? 'Firebase' : 'Cloudflare'}</p>
+        </div>
+      `;
+    }
+
     /* ==================== FIREBASE ==================== */
     async function cargarEpisodiosDesdeFirebase() {
       try {
+        // Verificar si existe el documento de idioma
+        const idiomaDocRef = db
+          .collection("animes-series").doc(nombreSerie)
+          .collection("Temporadas").doc(temporada)
+          .collection("Idiomas").doc(idioma);
+        
+        const idiomaDoc = await idiomaDocRef.get();
+        
+        if (!idiomaDoc.exists) {
+          // Intentar con idioma alternativo si el especificado no existe
+          const idiomasSnap = await db
+            .collection("animes-series").doc(nombreSerie)
+            .collection("Temporadas").doc(temporada)
+            .collection("Idiomas").get();
+          
+          if (idiomasSnap.empty) {
+            throw new Error(`No se encontró el idioma "${idioma}" ni alternativos`);
+          }
+          
+          // Usar el primer idioma disponible
+          const primerIdioma = idiomasSnap.docs[0].id;
+          idioma = primerIdioma;
+        }
+
         const servidoresSnap = await db
           .collection("animes-series").doc(nombreSerie)
           .collection("Temporadas").doc(temporada)
@@ -534,6 +655,10 @@
           });
         }
 
+        if (episodios.length === 0) {
+          throw new Error(`No se encontraron episodios para ${nombreSerie} - ${temporada} (${idioma})`);
+        }
+
         episodios.sort((a, b) => a.name.localeCompare(b.name, 'es', { numeric: true }));
         servidorActivo = Object.keys(episodios[0].embeds)[0];
         updateHeaderInfo();
@@ -545,7 +670,6 @@
         console.error("Error cargando desde Firebase:", error);
         // Si Firebase falla, intentar con Cloudflare automáticamente
         if (servicioActivo === 'firebase') {
-          alert("Firebase no está disponible. Cambiando a Cloudflare...");
           servicioActivo = 'cloudflare';
           updateServiceUI();
           await cargarEpisodiosDesdeCloudflare();
@@ -556,7 +680,7 @@
     /* ==================== CLOUDFLARE ==================== */
     async function cargarEpisodiosDesdeCloudflare() {
       try {
-        // Obtener servidores disponibles
+        // Obtener servidores disponibles para este idioma específico
         const servidoresResponse = await fetch(
           `${CLOUDFLARE_BASE_URL}/servidores?serie=${encodeURIComponent(nombreSerie)}&temporada=${encodeURIComponent(temporada)}&idioma=${encodeURIComponent(idioma)}`
         );
@@ -568,7 +692,17 @@
         const servidores = await servidoresResponse.json();
         
         if (!servidores || servidores.error) {
-          throw new Error(servidores.error || "Error obteniendo servidores");
+          // Intentar obtener lista de idiomas disponibles
+          const idiomasResponse = await fetch(
+            `${CLOUDFLARE_BASE_URL}/idiomas?serie=${encodeURIComponent(nombreSerie)}&temporada=${encodeURIComponent(temporada)}`
+          );
+          
+          if (idiomasResponse.ok) {
+            const idiomasDisponibles = await idiomasResponse.json();
+            throw new Error(`Idioma "${idioma}" no disponible. Idiomas disponibles: ${idiomasDisponibles.join(', ')}`);
+          } else {
+            throw new Error("Error obteniendo servidores");
+          }
         }
 
         episodios = [];
@@ -603,7 +737,7 @@
         }
 
         if (episodios.length === 0) {
-          throw new Error("No se encontraron episodios en Cloudflare");
+          throw new Error(`No se encontraron episodios en Cloudflare para ${idioma}`);
         }
 
         episodios.sort((a, b) => a.name.localeCompare(b.name, 'es', { numeric: true }));
@@ -617,7 +751,6 @@
         console.error("Error cargando desde Cloudflare:", error);
         // Si Cloudflare falla, intentar con Firebase automáticamente
         if (servicioActivo === 'cloudflare') {
-          alert("Cloudflare no está disponible. Cambiando a Firebase...");
           servicioActivo = 'firebase';
           updateServiceUI();
           await cargarEpisodiosDesdeFirebase();
@@ -626,6 +759,12 @@
     }
 
     /* ==================== FUNCIONES DE REPRODUCCIÓN ==================== */
+    function updateHeaderInfo() {
+      document.getElementById("serieTitle").textContent = nombreSerie;
+      document.getElementById("seasonLang").textContent = `${temporada} - ${idioma}`;
+      document.getElementById("episodeCount").textContent = `${episodios.length} episodios`;
+    }
+
     function renderEpisodeSelector() {
       const selector = document.querySelector('.episode-selector');
       selector.innerHTML = '';
@@ -633,6 +772,7 @@
         const option = document.createElement('option');
         option.value = index;
         option.textContent = ep.name;
+        if (index === currentEpisode) option.selected = true;
         selector.appendChild(option);
       });
       selector.onchange = () => {
@@ -688,12 +828,6 @@
       });
     }
 
-    function updateHeaderInfo() {
-      document.getElementById("serieTitle").textContent = nombreSerie;
-      document.getElementById("seasonLang").textContent = `${temporada} | ${idioma}`;
-      document.getElementById("episodeCount").textContent = `${episodios.length} episodios`;
-    }
-
     function selectEpisode(index) {
       currentEpisode = parseInt(index);
       changeVideo(servidorActivo);
@@ -737,9 +871,9 @@
             </button>
           </div>
         `;
-        videoDetails.textContent = `${nombreSerie} | ${temporada} | ${episodios[currentEpisode].name} | ${servidor} (No disponible)`;
-        renderServerOptions?.();
-        renderSidebar?.();
+        videoDetails.textContent = `${nombreSerie} | ${temporada} - ${idioma} | ${episodios[currentEpisode].name} | ${servidor} (No disponible)`;
+        renderServerOptions();
+        renderSidebar();
         return;
       }
 
@@ -770,11 +904,11 @@
 
       // Actualizar detalles
       if (videoDetails) {
-        videoDetails.textContent = `${nombreSerie} | ${temporada} | ${episodios[currentEpisode].name} | ${servidor}`;
+        videoDetails.textContent = `${nombreSerie} | ${temporada} - ${idioma} | ${episodios[currentEpisode].name} | ${servidor}`;
       }
 
-      renderServerOptions?.();
-      renderSidebar?.();
+      renderServerOptions();
+      renderSidebar();
     }
 
     function irAEpisodioDisponible(servidor) {
@@ -800,22 +934,23 @@
     }
 
     function getCustomThumbnailURL() {
-      return "https://m.media-amazon.com/images/M/MV5BNTdjZWE0ODItMDA4NC00ZDhhLWEyMTAtNDg0NWE5ZDM4MTJkXkEyXkFqcGc@._V1_.jpg";
+      return "https://excelpic.s3.us-west-2.amazonaws.com/QESGQPMOPKR1/blob-NCnd1741995020243.webp";
     }
 
-//function getCustomThumbnailURL(servidor) { (Opcional si se quiere que cada servidor tenga su miniatura)
-      //const thumbnails = {
-        //"Abyss": "https://m.media-amazon.com/images/M/MV5BNjliYzA2OWQtNTI3Mi00OTc4LWJlZDktNzhmZTc5YjhiZDEyXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
-        //"Bitchute": "https://m.media-amazon.com/images/M/MV5BNjliYzA2OWQtNTI3Mi00OTc4LWJlZDktNzhmZTc5YjhiZDEyXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
-        //"Dailymotion": "https://m.media-amazon.com/images/M/MV5BNjliYzA2OWQtNTI3Mi00OTc4LWJlZDktNzhmZTc5YjhiZDEyXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
-        
-      //};
-      //return thumbnails[servidor] || "https://via.placeholder.com/120x70?text=Preview";
-    //}
-
-        // Inicializar
-    updateServiceUI();
-    cargarEpisodios();
+    /* ==================== INICIALIZACIÓN ==================== */
+    document.addEventListener('DOMContentLoaded', function() {
+      // Inicializar UI del servicio
+      updateServiceUI();
+      
+      // Verificar si hay parámetros en la URL
+      if (obtenerParametrosURL()) {
+        // Cargar episodios
+        cargarEpisodios();
+      } else {
+        // Mostrar error si no hay parámetros
+        mostrarError("Por favor, selecciona una serie desde el catálogo principal.");
+      }
+    });
   </script>
 </body>
 </html>
