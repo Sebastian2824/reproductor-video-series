@@ -1,8 +1,6 @@
-# Credenciales (NUNCA subir)
+# Credenciales
+credentials.json
 Credentials/credentials.json
-
-# Variables de entorno
-.env
 
 # Node
 node_modules/
@@ -10,3 +8,6 @@ node_modules/
 # Logs
 *.log
 
+# Sistema
+.DS_Store
+Thumbs.db
