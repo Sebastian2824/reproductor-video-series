@@ -4,10 +4,13 @@
   <meta charset="UTF-8">
   <title>Series | Leno Style</title>
 
-  <!-- Estilos base del tema Leno -->
+  <!-- Estilos base del tema Leno (MANTENIENDO ORIGINALES) -->
   <link rel="stylesheet" href="css/bootstrap.css">
   <link rel="stylesheet" href="css/fontawesome-all.css">
   <link rel="stylesheet" href="css/styles.css">
+
+  <!-- Font Awesome desde CDN (SOLUCIÓN PARA LOS ICONOS) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <!-- Fuente moderna -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -109,6 +112,14 @@ body {
 
 .btn-service.cloudflare:hover {
   background: #e55a2b;
+}
+
+.btn-service.sheets {
+  background: #0f9d58;
+}
+
+.btn-service.sheets:hover {
+  background: #0b8043;
 }
 
 /* Botón cerrar sesión compacto */
@@ -452,12 +463,12 @@ body {
   <div class="series-grid" id="contenedorSeries"></div>
 </main>
 
-  <!-- Scripts base del tema Leno -->
+  <!-- Scripts base del tema Leno (MANTENIENDO ORIGINALES) -->
   <script src="js/jquery.min.js"></script>
   <script src="js/bootstrap.bundle.min.js"></script>
   <script src="js/custom.js"></script>
 
-  <!-- Lógica Firebase, Cloudflare y renderizado -->
+  <!-- Lógica Firebase, Cloudflare, Google Sheets y renderizado -->
   <script>
   // Configuración de Firebase
   const firebaseConfig = {
@@ -473,8 +484,15 @@ body {
   // Configuración de Cloudflare
   const CLOUDFLARE_ENDPOINT = 'https://proyecto-cloudflare.apiprueba2025.workers.dev';
 
+  // Configuración de Google Sheets
+  const GOOGLE_SHEETS_CONFIG = {
+    SPREADSHEET_ID: '1V4LTYiuTDZ_Y_k6GRyVmFm5-G3rVhE6x1KfIcxJfLqM', // ← TU ID CORRECTO
+    SHEET_NAME: 'Portadas',
+    RANGE: 'A:D'
+  };
+
   // Estado de la aplicación
-  let servicioActivo = 'firebase'; // 'firebase' o 'cloudflare'
+  let servicioActivo = 'firebase'; // 'firebase', 'cloudflare' o 'sheets'
   let todasLasSeries = [];
   let nombresUnicos = new Set();
   const ITEMS_POR_PAGINA = 9;
@@ -488,14 +506,13 @@ body {
   function toggleServicio() {
     if (servicioActivo === 'firebase') {
       servicioActivo = 'cloudflare';
-      document.getElementById('toggleService').innerHTML = '<i class="fas fa-exchange-alt"></i> Cambiar servicio';
-      document.getElementById('toggleService').classList.add('cloudflare');
-      document.getElementById('serviceIndicator').innerHTML = '<i class="fas fa-cloud"></i> Cloudflare';
+      updateServiceUI();
+    } else if (servicioActivo === 'cloudflare') {
+      servicioActivo = 'sheets';
+      updateServiceUI();
     } else {
       servicioActivo = 'firebase';
-      document.getElementById('toggleService').innerHTML = '<i class="fas fa-exchange-alt"></i> Cambiar servicio';
-      document.getElementById('toggleService').classList.remove('cloudflare');
-      document.getElementById('serviceIndicator').innerHTML = '<i class="fas fa-database"></i> Firebase';
+      updateServiceUI();
     }
     
     // Recargar datos con el nuevo servicio
@@ -503,12 +520,32 @@ body {
     cargarSeries();
   }
 
+  // Función para actualizar la UI según el servicio activo
+  function updateServiceUI() {
+    const toggleBtn = document.getElementById('toggleService');
+    const indicator = document.getElementById('serviceIndicator');
+    
+    toggleBtn.classList.remove('cloudflare', 'sheets');
+    
+    if (servicioActivo === 'firebase') {
+      indicator.innerHTML = '<i class="fas fa-database"></i> Firebase';
+    } else if (servicioActivo === 'cloudflare') {
+      toggleBtn.classList.add('cloudflare');
+      indicator.innerHTML = '<i class="fas fa-cloud"></i> Cloudflare';
+    } else if (servicioActivo === 'sheets') {
+      toggleBtn.classList.add('sheets');
+      indicator.innerHTML = '<i class="fas fa-table"></i> Google Sheets';
+    }
+  }
+
   // Función para cargar series según el servicio activo
   async function cargarSeries() {
     if (servicioActivo === 'firebase') {
       await cargarSeriesFirebase();
-    } else {
+    } else if (servicioActivo === 'cloudflare') {
       await cargarSeriesCloudflare();
+    } else {
+      await cargarSeriesGoogleSheets();
     }
   }
 
@@ -526,20 +563,15 @@ body {
           .doc(nombreSerie).collection("Temporadas").get();
 
         snapshotTemporadas.forEach(docTemporada => {
-          const temporadaCompleta = docTemporada.id; // Esto ya incluye "Temporada 01 - Sub Español"
+          const temporadaCompleta = docTemporada.id;
           const data = docTemporada.data();
           const imagen = data.imagen || "https://via.placeholder.com/300x400?text=Sin+Imagen";
           
-          // IMPORTANTE: Ya NO extraemos idioma separado porque ya está en "temporadaCompleta"
-          // El formato ya es: "Temporada 01 - Sub Español"
-          
-          // Crear URL para el reproductor universal
-          // Enviamos la temporada completa como está
           const sitio = `reproductor_universal.html?serie=${encodeURIComponent(nombreSerie)}&temporada=${encodeURIComponent(temporadaCompleta)}`;
 
           datosTemporales.push({
             nombre: nombreSerie,
-            temporadaCompleta: temporadaCompleta, // "Temporada 01 - Sub Español"
+            temporadaCompleta: temporadaCompleta,
             imagen: imagen,
             sitio: sitio
           });
@@ -551,11 +583,11 @@ body {
       renderizarSeries();
     } catch (error) {
       console.error("Error cargando desde Firebase:", error);
-      // Si hay error, intentar con Cloudflare
-      if (servicioActivo === 'firebase') {
-        alert("Error al conectar con Firebase. Cambiando a Cloudflare...");
-        toggleServicio();
-      }
+      // Si hay error, intentar con el siguiente servicio
+      servicioActivo = 'cloudflare';
+      updateServiceUI();
+      showError("Error al conectar con Firebase. Cambiando a Cloudflare...");
+      await cargarSeriesCloudflare();
     }
   }
 
@@ -576,15 +608,13 @@ body {
         const nombreSerie = portada.nombreSerie;
         nombresUnicos.add(nombreSerie);
         
-        // En Cloudflare también asumimos que ya viene con idioma
-        const temporadaCompleta = portada.temporada; // "Temporada 01 - Sub Español"
+        const temporadaCompleta = portada.temporada;
         
-        // Crear URL para el reproductor universal
         const sitio = `reproductor_universal.html?serie=${encodeURIComponent(nombreSerie)}&temporada=${encodeURIComponent(temporadaCompleta)}`;
         
         datosTemporales.push({
           nombre: nombreSerie,
-          temporadaCompleta: temporadaCompleta, // "Temporada 01 - Sub Español"
+          temporadaCompleta: temporadaCompleta,
           imagen: portada.imagen || "https://via.placeholder.com/300x400?text=Sin+Imagen",
           sitio: sitio
         });
@@ -595,12 +625,144 @@ body {
       renderizarSeries();
     } catch (error) {
       console.error("Error cargando desde Cloudflare:", error);
-      // Si hay error, intentar con Firebase
-      if (servicioActivo === 'cloudflare') {
-        alert("Error al conectar con Cloudflare. Cambiando a Firebase...");
-        toggleServicio();
-      }
+      // Si hay error, intentar con Google Sheets
+      servicioActivo = 'sheets';
+      updateServiceUI();
+      showError("Error al conectar con Cloudflare. Cambiando a Google Sheets...");
+      await cargarSeriesGoogleSheets();
     }
+  }
+
+  // Función para cargar series desde Google Sheets
+  async function cargarSeriesGoogleSheets() {
+    try {
+      // OPCIÓN: URL CORREGIDA para Google Sheets publicado
+      const csvUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_CONFIG.SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${GOOGLE_SHEETS_CONFIG.SHEET_NAME}`;
+      
+      console.log("Intentando cargar desde:", csvUrl);
+      const response = await fetch(csvUrl);
+      
+      if (!response.ok) {
+        throw new Error(`Error HTTP: ${response.status}`);
+      }
+      
+      const csvText = await response.text();
+      console.log("Datos CSV recibidos (primeros 500 chars):", csvText.substring(0, 500));
+      
+      // Parsear CSV (formato específico de Google Sheets)
+      const rows = parseGoogleSheetsCSV(csvText);
+      
+      const datosTemporales = [];
+      const processedRows = new Set();
+
+      // Procesar filas del CSV
+      rows.forEach((row, index) => {
+        // Saltar encabezados si es la primera fila
+        if (index === 0 && (row[0]?.toLowerCase().includes('nombre') || row[0]?.toLowerCase().includes('serie'))) {
+          console.log("Encabezados encontrados:", row);
+          return;
+        }
+        
+        // Ajusta estos índices según la estructura de tu hoja
+        const nombreSerie = (row[0] || '').trim(); // Columna A
+        const temporadaCompleta = (row[1] || '').trim(); // Columna B
+        const imagen = (row[2] || '').trim(); // Columna C
+        
+        if (!nombreSerie || !temporadaCompleta) {
+          console.log("Fila ignorada - datos incompletos:", row);
+          return;
+        }
+        
+        const rowKey = `${nombreSerie}|${temporadaCompleta}`;
+        if (processedRows.has(rowKey)) return;
+        
+        processedRows.add(rowKey);
+        nombresUnicos.add(nombreSerie);
+        
+        const sitio = `reproductor_universal.html?serie=${encodeURIComponent(nombreSerie)}&temporada=${encodeURIComponent(temporadaCompleta)}`;
+        
+        datosTemporales.push({
+          nombre: nombreSerie,
+          temporadaCompleta: temporadaCompleta,
+          imagen: imagen || "https://via.placeholder.com/300x400?text=Sin+Imagen",
+          sitio: sitio
+        });
+        
+        console.log("Serie agregada desde Sheets:", nombreSerie, temporadaCompleta);
+      });
+
+      if (datosTemporales.length === 0) {
+        throw new Error("No se encontraron datos en Google Sheets");
+      }
+
+      todasLasSeries = datosTemporales;
+      poblarMenuSeries();
+      renderizarSeries();
+      showSuccess(`Cargadas ${datosTemporales.length} series desde Google Sheets`);
+      
+    } catch (error) {
+      console.error("Error cargando desde Google Sheets:", error);
+      // Si hay error, volver a Firebase
+      servicioActivo = 'firebase';
+      updateServiceUI();
+      showError("Error al conectar con Google Sheets. Volviendo a Firebase...");
+      await cargarSeriesFirebase();
+    }
+  }
+
+  // Función auxiliar para parsear CSV específico de Google Sheets
+  function parseGoogleSheetsCSV(text) {
+    const rows = [];
+    const lines = text.split('\n');
+    
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      
+      // Manejo de comillas y comas dentro de celdas
+      const row = [];
+      let currentCell = '';
+      let insideQuotes = false;
+      
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        
+        if (char === '"') {
+          insideQuotes = !insideQuotes;
+        } else if (char === ',' && !insideQuotes) {
+          row.push(currentCell.trim());
+          currentCell = '';
+        } else {
+          currentCell += char;
+        }
+      }
+      
+      // Agregar la última celda
+      row.push(currentCell.trim());
+      
+      // Limpiar comillas dobles
+      const cleanedRow = row.map(cell => {
+        // Remover comillas dobles al inicio y final
+        return cell.replace(/^"|"$/g, '');
+      });
+      
+      rows.push(cleanedRow);
+    }
+    
+    return rows;
+  }
+
+  // Función para mostrar errores
+  function showError(message) {
+    console.error(message);
+    // Puedes usar alert o un toast más elegante
+    alert(message);
+  }
+
+  // Función para mostrar éxito
+  function showSuccess(message) {
+    console.log(message);
+    // Opcional: mostrar notificación sutil
+    // alert(message); // Comentado para no molestar
   }
 
   function poblarMenuSeries() {
@@ -641,11 +803,22 @@ body {
     const inicio = (currentPage - 1) * ITEMS_POR_PAGINA;
     const paginadas = filtradas.slice(inicio, inicio + ITEMS_POR_PAGINA);
 
+    if (paginadas.length === 0) {
+      contenedor.innerHTML = `
+        <div style="text-align: center; width: 100%; padding: 50px;">
+          <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #ff6b35; margin-bottom: 20px;"></i>
+          <h3>No se encontraron series</h3>
+          <p>Intenta cambiar los filtros o seleccionar otro servicio.</p>
+        </div>
+      `;
+      return;
+    }
+
     paginadas.forEach(serie => {
       const card = document.createElement("div");
       card.className = "serie-card";
       card.innerHTML = `
-        <img src="${serie.imagen}" alt="Portada de ${serie.nombre}">
+        <img src="${serie.imagen}" alt="Portada de ${serie.nombre}" onerror="this.src='https://via.placeholder.com/300x400?text=Imagen+No+Disponible'">
         <div class="serie-info">
           <h3>${serie.nombre}</h3>
           <p>${serie.temporadaCompleta}</p>
@@ -659,8 +832,14 @@ body {
   }
 
   function renderizarPaginacion(totalPaginas) {
-    const paginacionContenedor = document.getElementById("paginacion") || document.createElement("div");
-    paginacionContenedor.id = "paginacion";
+    let paginacionContenedor = document.getElementById("paginacion");
+    
+    if (!paginacionContenedor) {
+      paginacionContenedor = document.createElement("div");
+      paginacionContenedor.id = "paginacion";
+      document.querySelector(".main-content").appendChild(paginacionContenedor);
+    }
+    
     paginacionContenedor.style.textAlign = "center";
     paginacionContenedor.style.marginTop = "30px";
     paginacionContenedor.style.display = "flex";
@@ -668,6 +847,8 @@ body {
     paginacionContenedor.style.alignItems = "center";
     paginacionContenedor.style.gap = "15px";
     paginacionContenedor.innerHTML = "";
+
+    if (totalPaginas <= 1) return;
 
     const btnAnterior = document.createElement("button");
     btnAnterior.innerHTML = "&#8592;";
@@ -709,10 +890,6 @@ body {
     paginacionContenedor.appendChild(btnAnterior);
     paginacionContenedor.appendChild(texto);
     paginacionContenedor.appendChild(btnSiguiente);
-
-    if (!document.getElementById("paginacion")) {
-      document.querySelector(".main-content").appendChild(paginacionContenedor);
-    }
   }
 
   // Event Listeners

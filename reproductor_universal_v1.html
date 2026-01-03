@@ -5,7 +5,7 @@
   <title>Reproductor Universal</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-     body {
+    body {
       margin: 0;
       padding: 0;
       font-family: 'Arial', sans-serif;
@@ -167,7 +167,7 @@
       color: #666;
     }
 
-    /* ======= NUEVO: BOTÓN VOLVER AL CATÁLOGO ======= */
+    /* ======= BOTÓN VOLVER AL CATÁLOGO ======= */
     .back-button {
       background: #6c757d;
       color: white;
@@ -224,14 +224,19 @@
       font-weight: bold;
     }
 
-    .service-active {
-      background-color: #e6f7e6;
-      color: #2e7d32;
+    .service-firebase {
+      background-color: #e3f2fd;
+      color: #1565c0;
     }
 
-    .service-inactive {
-      background-color: #ffebee;
-      color: #c62828;
+    .service-cloudflare {
+      background-color: #f3e5f5;
+      color: #7b1fa2;
+    }
+
+    .service-sheets {
+      background-color: #e8f5e9;
+      color: #2e7d32;
     }
 
     /* ======= ESTILO RESPONSIVO ======= */
@@ -423,7 +428,6 @@
         margin-top: 5px;
       }
     }
-
   </style>
 </head>
 <body>
@@ -459,7 +463,7 @@
         <div class="service-toggle">
           <span class="service-toggle-label">Servicio:</span>
           <button class="service-toggle-btn" id="serviceToggleBtn" onclick="toggleService()">Cambiar a Cloudflare</button>
-          <span class="service-status service-active" id="serviceStatus">Firebase</span>
+          <span class="service-status service-firebase" id="serviceStatus">Firebase</span>
         </div>
       </div>
       <div class="episode-list" id="sidebarPlaylist"></div>
@@ -480,18 +484,25 @@
       measurementId: "G-DN632G7XJT"
     };
 
-    // URL base para Cloudflare Workers (misma que en Menu_Principal)
+    // URL base para Cloudflare Workers
     const CLOUDFLARE_BASE_URL = "https://proyecto-cloudflare.apiprueba2025.workers.dev";
+
+    // Configuración de Google Sheets (misma ID que el menú principal)
+    const GOOGLE_SHEETS_CONFIG = {
+      SPREADSHEET_ID: '1V4LTYiuTDZ_Y_k6GRyVmFm5-G3rVhE6x1KfIcxJfLqM',
+      SHEET_NAME: 'Iframes', // Hoja diferente para iframes
+      RANGE: 'A:F' // Ajusta según las columnas que necesites
+    };
 
     // Variables globales dinámicas
     let nombreSerie = "";
     let temporada = "";
-    let idioma = ""; // Ahora es dinámico
+    let idioma = "";
     
     let episodios = [];
     let currentEpisode = 0;
     let servidorActivo = null;
-    let servicioActivo = 'firebase'; // 'firebase' o 'cloudflare'
+    let servicioActivo = 'firebase'; // 'firebase', 'cloudflare' o 'sheets'
 
     // Inicializar Firebase
     const app = firebase.initializeApp(firebaseConfig);
@@ -506,29 +517,23 @@
       const urlParams = new URLSearchParams(window.location.search);
       nombreSerie = urlParams.get('serie') || "";
       
-      // Obtener temporada e idioma juntos (ej: "Temporada 01 - Sub Español")
       const tempIdioma = urlParams.get('temporada') || "";
       
-      // Separar temporada e idioma
       if (tempIdioma.includes(" - ")) {
         const partes = tempIdioma.split(" - ");
         temporada = partes[0] || "";
-        idioma = partes[1] || "Sub Español"; // Default si no hay idioma
+        idioma = partes[1] || "Sub Español";
       } else {
-        // Si no viene con el formato esperado, asumimos que es solo temporada
         temporada = tempIdioma;
-        idioma = "Sub Español"; // Idioma por defecto
+        idioma = "Sub Español";
       }
       
-      // Si no hay parámetros esenciales, mostrar error
       if (!nombreSerie || !temporada) {
         mostrarError("No se especificó la serie o temporada");
         return false;
       }
       
-      // Actualizar título de la página
       document.title = `${nombreSerie} - ${temporada}`;
-      
       return true;
     }
 
@@ -551,7 +556,13 @@
 
     /* ==================== FUNCIONES DE SERVICIO ==================== */
     function toggleService() {
-      servicioActivo = servicioActivo === 'firebase' ? 'cloudflare' : 'firebase';
+      if (servicioActivo === 'firebase') {
+        servicioActivo = 'cloudflare';
+      } else if (servicioActivo === 'cloudflare') {
+        servicioActivo = 'sheets';
+      } else {
+        servicioActivo = 'firebase';
+      }
       updateServiceUI();
       cargarEpisodios();
     }
@@ -560,39 +571,50 @@
       const serviceToggleBtn = document.getElementById('serviceToggleBtn');
       const serviceStatus = document.getElementById('serviceStatus');
       
+      // Actualizar texto del botón
       if (servicioActivo === 'firebase') {
         serviceToggleBtn.textContent = 'Cambiar a Cloudflare';
         serviceStatus.textContent = 'Firebase';
-        serviceStatus.className = 'service-status service-active';
+        serviceStatus.className = 'service-status service-firebase';
+      } else if (servicioActivo === 'cloudflare') {
+        serviceToggleBtn.textContent = 'Cambiar a Google Sheets';
+        serviceStatus.textContent = 'Cloudflare';
+        serviceStatus.className = 'service-status service-cloudflare';
       } else {
         serviceToggleBtn.textContent = 'Cambiar a Firebase';
-        serviceStatus.textContent = 'Cloudflare';
-        serviceStatus.className = 'service-status service-inactive';
+        serviceStatus.textContent = 'Google Sheets';
+        serviceStatus.className = 'service-status service-sheets';
       }
     }
 
     async function cargarEpisodios() {
       if (!obtenerParametrosURL()) return;
       
-      // Mostrar mensaje de carga
       mostrarMensajeCarga();
       
       if (servicioActivo === 'firebase') {
         await cargarEpisodiosDesdeFirebase();
-      } else {
+      } else if (servicioActivo === 'cloudflare') {
         await cargarEpisodiosDesdeCloudflare();
+      } else {
+        await cargarEpisodiosDesdeGoogleSheets();
       }
     }
 
     function mostrarMensajeCarga() {
       const videoContainer = document.getElementById('videoContainer');
+      let servicioTexto = '';
+      if (servicioActivo === 'firebase') servicioTexto = 'Firebase';
+      else if (servicioActivo === 'cloudflare') servicioTexto = 'Cloudflare';
+      else servicioTexto = 'Google Sheets';
+      
       videoContainer.innerHTML = `
         <div style="padding: 40px; text-align: center; background: #e9ecef; border-radius: 10px;">
           <div style="margin-bottom: 15px;">⏳</div>
           <h3 style="margin-top: 0; color: #003a73;">Cargando episodios...</h3>
           <p>${nombreSerie}</p>
           <p>${temporada} - ${idioma}</p>
-          <p style="font-size: 12px; color: #666;">Servicio: ${servicioActivo === 'firebase' ? 'Firebase' : 'Cloudflare'}</p>
+          <p style="font-size: 12px; color: #666;">Servicio: ${servicioTexto}</p>
         </div>
       `;
     }
@@ -600,7 +622,6 @@
     /* ==================== FIREBASE ==================== */
     async function cargarEpisodiosDesdeFirebase() {
       try {
-        // Verificar si existe el documento de idioma
         const idiomaDocRef = db
           .collection("animes-series").doc(nombreSerie)
           .collection("Temporadas").doc(temporada)
@@ -609,7 +630,6 @@
         const idiomaDoc = await idiomaDocRef.get();
         
         if (!idiomaDoc.exists) {
-          // Intentar con idioma alternativo si el especificado no existe
           const idiomasSnap = await db
             .collection("animes-series").doc(nombreSerie)
             .collection("Temporadas").doc(temporada)
@@ -619,7 +639,6 @@
             throw new Error(`No se encontró el idioma "${idioma}" ni alternativos`);
           }
           
-          // Usar el primer idioma disponible
           const primerIdioma = idiomasSnap.docs[0].id;
           idioma = primerIdioma;
         }
@@ -668,19 +687,16 @@
         renderSidebar();
       } catch (error) {
         console.error("Error cargando desde Firebase:", error);
-        // Si Firebase falla, intentar con Cloudflare automáticamente
-        if (servicioActivo === 'firebase') {
-          servicioActivo = 'cloudflare';
-          updateServiceUI();
-          await cargarEpisodiosDesdeCloudflare();
-        }
+        // Rotar al siguiente servicio
+        servicioActivo = 'cloudflare';
+        updateServiceUI();
+        await cargarEpisodiosDesdeCloudflare();
       }
     }
 
     /* ==================== CLOUDFLARE ==================== */
     async function cargarEpisodiosDesdeCloudflare() {
       try {
-        // Obtener servidores disponibles para este idioma específico
         const servidoresResponse = await fetch(
           `${CLOUDFLARE_BASE_URL}/servidores?serie=${encodeURIComponent(nombreSerie)}&temporada=${encodeURIComponent(temporada)}&idioma=${encodeURIComponent(idioma)}`
         );
@@ -692,7 +708,6 @@
         const servidores = await servidoresResponse.json();
         
         if (!servidores || servidores.error) {
-          // Intentar obtener lista de idiomas disponibles
           const idiomasResponse = await fetch(
             `${CLOUDFLARE_BASE_URL}/idiomas?serie=${encodeURIComponent(nombreSerie)}&temporada=${encodeURIComponent(temporada)}`
           );
@@ -707,7 +722,6 @@
 
         episodios = [];
 
-        // Para cada servidor, obtener sus episodios
         for (const servidor of servidores) {
           const episodiosResponse = await fetch(
             `${CLOUDFLARE_BASE_URL}/episodios?serie=${encodeURIComponent(nombreSerie)}&temporada=${encodeURIComponent(temporada)}&idioma=${encodeURIComponent(idioma)}&servidor=${encodeURIComponent(servidor)}`
@@ -725,7 +739,6 @@
             continue;
           }
 
-          // Procesar episodios del servidor
           episodiosData.forEach(epData => {
             let episodio = episodios.find(e => e.name === epData.episodio);
             if (!episodio) {
@@ -749,13 +762,153 @@
         renderSidebar();
       } catch (error) {
         console.error("Error cargando desde Cloudflare:", error);
-        // Si Cloudflare falla, intentar con Firebase automáticamente
-        if (servicioActivo === 'cloudflare') {
-          servicioActivo = 'firebase';
-          updateServiceUI();
-          await cargarEpisodiosDesdeFirebase();
-        }
+        // Rotar al siguiente servicio
+        servicioActivo = 'sheets';
+        updateServiceUI();
+        await cargarEpisodiosDesdeGoogleSheets();
       }
+    }
+
+    /* ==================== GOOGLE SHEETS ==================== */
+    async function cargarEpisodiosDesdeGoogleSheets() {
+      try {
+        // URL para obtener los datos en formato CSV
+        const csvUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_CONFIG.SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${GOOGLE_SHEETS_CONFIG.SHEET_NAME}`;
+        
+        console.log("Cargando desde Google Sheets URL:", csvUrl);
+        const response = await fetch(csvUrl);
+        
+        if (!response.ok) {
+          throw new Error(`Error HTTP: ${response.status}`);
+        }
+        
+        const csvText = await response.text();
+        console.log("Datos CSV recibidos (primeros 500 chars):", csvText.substring(0, 500));
+        
+        // Parsear el CSV
+        const rows = parseGoogleSheetsCSV(csvText);
+        
+        if (rows.length === 0) {
+          throw new Error("No se encontraron datos en Google Sheets");
+        }
+        
+        // Identificar índices de columnas basados en encabezados
+        const headers = rows[0].map(h => h.trim().toLowerCase());
+        const indexSerie = headers.findIndex(h => h.includes('serie') || h.includes('nombre'));
+        const indexTemporada = headers.findIndex(h => h.includes('temporada') || h.includes('season'));
+        const indexIdioma = headers.findIndex(h => h.includes('idioma') || h.includes('language'));
+        const indexServidor = headers.findIndex(h => h.includes('servidor') || h.includes('server'));
+        const indexEpisodio = headers.findIndex(h => h.includes('episodio') || h.includes('episode'));
+        const indexIframe = headers.findIndex(h => h.includes('iframe') || h.includes('embed'));
+        
+        // Validar que tenemos las columnas necesarias
+        if (indexSerie === -1 || indexTemporada === -1 || indexEpisodio === -1 || indexIframe === -1) {
+          console.error("Encabezados encontrados:", headers);
+          throw new Error("Formato de Google Sheets incorrecto. Se necesitan columnas: Serie, Temporada, Episodio, Iframe");
+        }
+        
+        episodios = [];
+        const processedRows = new Set();
+        
+        // Procesar filas
+        for (let i = 1; i < rows.length; i++) {
+          const row = rows[i];
+          
+          // Verificar que la fila tiene suficientes columnas
+          if (row.length <= Math.max(indexSerie, indexTemporada, indexEpisodio, indexIframe)) {
+            continue;
+          }
+          
+          const rowSerie = (row[indexSerie] || '').trim();
+          const rowTemporada = (row[indexTemporada] || '').trim();
+          const rowIdioma = indexIdioma !== -1 ? (row[indexIdioma] || '').trim() : idioma;
+          const rowServidor = indexServidor !== -1 ? (row[indexServidor] || 'Default').trim() : 'Default';
+          const rowEpisodio = (row[indexEpisodio] || '').trim();
+          const rowIframe = (row[indexIframe] || '').trim();
+          
+          // Filtrar por serie, temporada e idioma
+          if (rowSerie.toLowerCase() !== nombreSerie.toLowerCase() ||
+              rowTemporada !== temporada ||
+              rowIdioma.toLowerCase() !== idioma.toLowerCase()) {
+            continue;
+          }
+          
+          if (!rowEpisodio || !rowIframe) {
+            continue;
+          }
+          
+          const rowKey = `${rowEpisodio}|${rowServidor}`;
+          if (processedRows.has(rowKey)) continue;
+          
+          processedRows.add(rowKey);
+          
+          let episodio = episodios.find(e => e.name === rowEpisodio);
+          if (!episodio) {
+            episodio = { name: rowEpisodio, embeds: {} };
+            episodios.push(episodio);
+          }
+          
+          episodio.embeds[rowServidor] = rowIframe;
+        }
+        
+        if (episodios.length === 0) {
+          throw new Error(`No se encontraron episodios en Google Sheets para ${nombreSerie} - ${temporada} (${idioma})`);
+        }
+        
+        episodios.sort((a, b) => a.name.localeCompare(b.name, 'es', { numeric: true }));
+        servidorActivo = Object.keys(episodios[0].embeds)[0] || 'Default';
+        updateHeaderInfo();
+        renderEpisodeSelector();
+        renderServerOptions();
+        changeVideo(servidorActivo);
+        renderSidebar();
+        
+        console.log(`Cargados ${episodios.length} episodios desde Google Sheets`);
+        
+      } catch (error) {
+        console.error("Error cargando desde Google Sheets:", error);
+        // Rotar de vuelta a Firebase
+        servicioActivo = 'firebase';
+        updateServiceUI();
+        await cargarEpisodiosDesdeFirebase();
+      }
+    }
+
+    // Función auxiliar para parsear CSV de Google Sheets
+    function parseGoogleSheetsCSV(text) {
+      const rows = [];
+      const lines = text.split('\n');
+      
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        
+        const row = [];
+        let currentCell = '';
+        let insideQuotes = false;
+        
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+          
+          if (char === '"') {
+            insideQuotes = !insideQuotes;
+          } else if (char === ',' && !insideQuotes) {
+            row.push(currentCell.trim());
+            currentCell = '';
+          } else {
+            currentCell += char;
+          }
+        }
+        
+        row.push(currentCell.trim());
+        
+        const cleanedRow = row.map(cell => {
+          return cell.replace(/^"|"$/g, '');
+        });
+        
+        rows.push(cleanedRow);
+      }
+      
+      return rows;
     }
 
     /* ==================== FUNCIONES DE REPRODUCCIÓN ==================== */
@@ -852,104 +1005,87 @@
     }
 
     function changeVideo(servidor) {
-  servidorActivo = servidor;
-  const videoContainer = document.getElementById('videoContainer');
-  const videoDetails = document.getElementById("videoDetails");
+      servidorActivo = servidor;
+      const videoContainer = document.getElementById('videoContainer');
+      const videoDetails = document.getElementById("videoDetails");
 
-  // Limpiar contenido anterior
-  videoContainer.innerHTML = '';
+      videoContainer.innerHTML = '';
 
-  const embed = episodios[currentEpisode].embeds[servidor];
+      const embed = episodios[currentEpisode].embeds[servidor];
 
-  // Si el episodio actual no está disponible en el servidor
-  if (!embed) {
-    videoContainer.innerHTML = `
-      <div style="padding: 20px; background-color: #ffeeee; color: #a94442; border-radius: 10px; text-align: center;">
-        <p style="font-weight: bold;">Este episodio (<strong>${episodios[currentEpisode].name}</strong>) no está disponible en el servidor: <u>${servidor}</u> por varias razones (Copyright o no se pudo subir al Servidor).</p>
-        <button onclick="irAEpisodioDisponible('${servidor.replace(/'/g, "\\'")}')" style="margin-top:10px; padding: 10px 20px; background-color: #003a73; color: white; border: none; border-radius: 8px; cursor: pointer;">
-          Ir a los episodios disponibles
-        </button>
-      </div>
-    `;
-    videoDetails.textContent = `${nombreSerie} | ${temporada} - ${idioma} | ${episodios[currentEpisode].name} | ${servidor} (No disponible)`;
-    renderServerOptions();
-    renderSidebar();
-    return;
-  }
+      if (!embed) {
+        videoContainer.innerHTML = `
+          <div style="padding: 20px; background-color: #ffeeee; color: #a94442; border-radius: 10px; text-align: center;">
+            <p style="font-weight: bold;">Este episodio (<strong>${episodios[currentEpisode].name}</strong>) no está disponible en el servidor: <u>${servidor}</u> por varias razones (Copyright o no se pudo subir al Servidor).</p>
+            <button onclick="irAEpisodioDisponible('${servidor.replace(/'/g, "\\'")}')" style="margin-top:10px; padding: 10px 20px; background-color: #003a73; color: white; border: none; border-radius: 8px; cursor: pointer;">
+              Ir a los episodios disponibles
+            </button>
+          </div>
+        `;
+        videoDetails.textContent = `${nombreSerie} | ${temporada} - ${idioma} | ${episodios[currentEpisode].name} | ${servidor} (No disponible)`;
+        renderServerOptions();
+        renderSidebar();
+        return;
+      }
 
-  if (servidor === 'abyss') {
-    // Crear un iframe directamente sin tocar su contenido
-    const iframe = document.getElementById('abyssIframe') || document.createElement('iframe');
-    iframe.id = 'abyssIframe';
-    iframe.style.display = 'block';
-    iframe.style.width = '100%';
-    iframe.style.minHeight = '440px';
-    iframe.style.border = 'none';
-    iframe.setAttribute('allowfullscreen', '');
-    iframe.setAttribute('loading', 'lazy');
+      if (servidor === 'abyss') {
+        const iframe = document.getElementById('abyssIframe') || document.createElement('iframe');
+        iframe.id = 'abyssIframe';
+        iframe.style.display = 'block';
+        iframe.style.width = '100%';
+        iframe.style.minHeight = '440px';
+        iframe.style.border = 'none';
+        iframe.setAttribute('allowfullscreen', '');
+        iframe.setAttribute('loading', 'lazy');
+        iframe.srcdoc = episodios[currentEpisode].embeds[servidor];
+        videoContainer.appendChild(iframe);
+      } 
+      else if (servidor.toLowerCase().includes('jumpshare')) {
+        const container = document.createElement('div');
+        container.style.position = 'relative';
+        container.style.width = '100%';
+        container.style.paddingBottom = '56.25%';
+        container.style.height = '0';
+        container.style.overflow = 'hidden';
+        container.style.borderRadius = '10px';
+        container.style.backgroundColor = '#000';
+        
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(embed, 'text/html');
+        const iframe = doc.querySelector('iframe');
+        
+        if (iframe) {
+          iframe.style.position = 'absolute';
+          iframe.style.top = '0';
+          iframe.style.left = '0';
+          iframe.style.width = '100%';
+          iframe.style.height = '100%';
+          iframe.style.border = 'none';
+          iframe.style.borderRadius = '10px';
+          iframe.setAttribute('allowfullscreen', '');
+          iframe.setAttribute('webkitallowfullscreen', '');
+          iframe.setAttribute('mozallowfullscreen', '');
+          container.appendChild(iframe);
+          videoContainer.appendChild(container);
+        } else {
+          videoContainer.innerHTML = embed;
+        }
+      }
+      else if (servidor === 'Tokio Video') {
+        let modifiedEmbed = embed.replace(/style="[^"]*max-width:[^";]*;?[^"]*"/gi, '');
+        videoContainer.innerHTML = modifiedEmbed;
+      }
+      else {
+        videoContainer.innerHTML = embed;
+      }
 
-    // Insertar sin usar innerHTML ni DOMParser
-    iframe.srcdoc = episodios[currentEpisode].embeds[servidor];
-    videoContainer.appendChild(iframe);
-  } 
-  else if (servidor.toLowerCase().includes('jumpshare')) {
-    // ESPECIAL PARA JUMPSHARE
-    // Crear contenedor con relación de aspecto fija
-    const container = document.createElement('div');
-    container.style.position = 'relative';
-    container.style.width = '100%';
-    container.style.paddingBottom = '56.25%'; // Relación 16:9
-    container.style.height = '0';
-    container.style.overflow = 'hidden';
-    container.style.borderRadius = '10px';
-    container.style.backgroundColor = '#000';
-    
-    // Usar DOMParser para manipular el iframe de forma segura
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(embed, 'text/html');
-    const iframe = doc.querySelector('iframe');
-    
-    if (iframe) {
-      // Aplicar estilos específicos para Jumpshare
-      iframe.style.position = 'absolute';
-      iframe.style.top = '0';
-      iframe.style.left = '0';
-      iframe.style.width = '100%';
-      iframe.style.height = '100%';
-      iframe.style.border = 'none';
-      iframe.style.borderRadius = '10px';
-      
-      // Asegurar atributos de pantalla completa
-      iframe.setAttribute('allowfullscreen', '');
-      iframe.setAttribute('webkitallowfullscreen', '');
-      iframe.setAttribute('mozallowfullscreen', '');
-      
-      // Agregar el iframe al contenedor
-      container.appendChild(iframe);
-      videoContainer.appendChild(container);
-    } else {
-      // Fallback si no se puede parsear
-      videoContainer.innerHTML = embed;
+      if (videoDetails) {
+        videoDetails.textContent = `${nombreSerie} | ${temporada} - ${idioma} | ${episodios[currentEpisode].name} | ${servidor}`;
+      }
+
+      renderServerOptions();
+      renderSidebar();
     }
-  }
-  else if (servidor === 'Tokio Video') {
-    // Tokio Video - eliminar max-width
-    let modifiedEmbed = embed.replace(/style="[^"]*max-width:[^";]*;?[^"]*"/gi, '');
-    videoContainer.innerHTML = modifiedEmbed;
-  }
-  else {
-    // Otros servidores
-    videoContainer.innerHTML = embed;
-  }
-
-  // Actualizar detalles
-  if (videoDetails) {
-    videoDetails.textContent = `${nombreSerie} | ${temporada} - ${idioma} | ${episodios[currentEpisode].name} | ${servidor}`;
-  }
-
-  renderServerOptions();
-  renderSidebar();
-}
 
     function irAEpisodioDisponible(servidor) {
       let encontrado = false;
@@ -979,15 +1115,11 @@
 
     /* ==================== INICIALIZACIÓN ==================== */
     document.addEventListener('DOMContentLoaded', function() {
-      // Inicializar UI del servicio
       updateServiceUI();
       
-      // Verificar si hay parámetros en la URL
       if (obtenerParametrosURL()) {
-        // Cargar episodios
         cargarEpisodios();
       } else {
-        // Mostrar error si no hay parámetros
         mostrarError("Por favor, selecciona una serie desde el catálogo principal.");
       }
     });

@@ -604,6 +604,11 @@
       }
     }
 
+    .service-sheets {
+      background-color: #e8f5e9;
+      color: #2e7d32;
+    }
+
   </style>
 </head>
 <body>
@@ -624,7 +629,7 @@
       <div class="video-container" id="videoContainer"></div>
       <div class="video-info" id="videoDetails"></div>
 
-      <!-- NUEVO: SECCIÓN DE SERIES RECOMENDADAS (en PC va aquí) -->
+      <!-- SECCIÓN DE SERIES RECOMENDADAS (en PC va aquí) -->
       <div class="recomendaciones-section" id="recomendacionesDesktop">
         <div class="recomendaciones-header">
           <h3>Series Recomendadas</h3>
@@ -648,7 +653,7 @@
         </div>
         <select class="server-select" id="serverSelect" onchange="changeVideo(this.value)"></select>
         
-        <!-- BOTÓN DE CAMBIO DE SERVICIO -->
+        <!-- BOTÓN DE CAMBIO DE SERVICIO (AHORA CON 3 OPCIONES) -->
         <div class="service-toggle">
           <span class="service-toggle-label">Servicio:</span>
           <button class="service-toggle-btn" id="serviceToggleBtn" onclick="toggleService()">Cambiar a Cloudflare</button>
@@ -657,7 +662,7 @@
       </div>
       <div class="episode-list" id="sidebarPlaylist"></div>
 
-      <!-- EN MÓVILES: SECCIÓN DE SERIES RECOMENDADAS VA AQUÍ (se moverá con JS) -->
+      <!-- EN MÓVILES: SECCIÓN DE SERIES RECOMENDADAS VA AQUÍ -->
       <div class="recomendaciones-section" id="recomendacionesMobile" style="display: none;">
         <div class="recomendaciones-header">
           <h3>Series Recomendadas</h3>
@@ -686,8 +691,17 @@
       measurementId: "G-DN632G7XJT"
     };
 
-    // URL base para Cloudflare Workers (misma que en Menu_Principal)
+    // URL base para Cloudflare Workers
     const CLOUDFLARE_BASE_URL = "https://proyecto-cloudflare.apiprueba2025.workers.dev";
+
+    // CONFIGURACIÓN DE GOOGLE SHEETS (MISMO ID DEL MENÚ PRINCIPAL)
+    const GOOGLE_SHEETS_CONFIG = {
+      SPREADSHEET_ID: '1V4LTYiuTDZ_Y_k6GRyVmFm5-G3rVhE6x1KfIcxJfLqM',
+      HOJA_PORTADAS: 'Portadas',
+      HOJA_IFRAMES: 'iframes', // Nombre de la hoja para los iframes
+      RANGO_PORTADAS: 'A:D',
+      RANGO_IFRAMES: 'A:F' // Ajusta según tus columnas
+    };
 
     // Variables globales dinámicas
     let nombreSerie = "";
@@ -697,7 +711,7 @@
     let episodios = [];
     let currentEpisode = 0;
     let servidorActivo = null;
-    let servicioActivo = 'firebase'; // 'firebase' o 'cloudflare'
+    let servicioActivo = 'firebase'; // 'firebase', 'cloudflare' o 'sheets'
     let todasLasSeriesRecomendadas = [];
 
     // Inicializar Firebase
@@ -713,27 +727,22 @@
       const urlParams = new URLSearchParams(window.location.search);
       nombreSerie = urlParams.get('serie') || "";
       
-      // Obtener temporada e idioma juntos (ej: "Temporada 01 - Sub Español")
       const tempIdioma = urlParams.get('temporada') || "";
       
-      // Separar temporada e idioma
       if (tempIdioma.includes(" - ")) {
         const partes = tempIdioma.split(" - ");
         temporada = partes[0] || "";
         idioma = partes[1] || "Sub Español";
       } else {
-        // Si no viene con el formato esperado
         temporada = tempIdioma;
         idioma = "Sub Español";
       }
       
-      // Si no hay parámetros esenciales, mostrar error
       if (!nombreSerie || !temporada) {
         mostrarError("No se especificó la serie o temporada");
         return false;
       }
       
-      // Actualizar título de la página
       document.title = `${nombreSerie} - ${temporada}`;
       
       return true;
@@ -756,9 +765,17 @@
       document.getElementById("episodeCount").textContent = "0 episodios";
     }
 
-    /* ==================== FUNCIONES DE SERVICIO ==================== */
+    /* ==================== FUNCIONES DE SERVICIO (ACTUALIZADAS PARA 3 OPCIONES) ==================== */
     function toggleService() {
-      servicioActivo = servicioActivo === 'firebase' ? 'cloudflare' : 'firebase';
+      // Rotar entre los 3 servicios: firebase -> cloudflare -> sheets -> firebase
+      if (servicioActivo === 'firebase') {
+        servicioActivo = 'cloudflare';
+      } else if (servicioActivo === 'cloudflare') {
+        servicioActivo = 'sheets';
+      } else {
+        servicioActivo = 'firebase';
+      }
+      
       updateServiceUI();
       cargarEpisodios();
       cargarSeriesRecomendadas();
@@ -778,47 +795,216 @@
         recomendacionesIndicator.className = 'service-status service-active';
         recomendacionesIndicatorMobile.innerHTML = '<i class="fas fa-database"></i> Firebase';
         recomendacionesIndicatorMobile.className = 'service-status service-active';
-      } else {
-        serviceToggleBtn.textContent = 'Cambiar a Firebase';
+      } else if (servicioActivo === 'cloudflare') {
+        serviceToggleBtn.textContent = 'Cambiar a Google Sheets';
         serviceStatus.textContent = 'Cloudflare';
         serviceStatus.className = 'service-status service-inactive';
         recomendacionesIndicator.innerHTML = '<i class="fas fa-cloud"></i> Cloudflare';
         recomendacionesIndicator.className = 'service-status service-inactive';
         recomendacionesIndicatorMobile.innerHTML = '<i class="fas fa-cloud"></i> Cloudflare';
         recomendacionesIndicatorMobile.className = 'service-status service-inactive';
+      } else if (servicioActivo === 'sheets') {
+        serviceToggleBtn.textContent = 'Cambiar a Firebase';
+        serviceStatus.textContent = 'Google Sheets';
+        serviceStatus.className = 'service-status service-sheets';
+        recomendacionesIndicator.innerHTML = '<i class="fas fa-table"></i> Sheets';
+        recomendacionesIndicator.className = 'service-status service-sheets';
+        recomendacionesIndicatorMobile.innerHTML = '<i class="fas fa-table"></i> Sheets';
+        recomendacionesIndicatorMobile.className = 'service-status service-sheets';
       }
     }
 
     async function cargarEpisodios() {
       if (!obtenerParametrosURL()) return;
       
-      // Mostrar mensaje de carga
       mostrarMensajeCarga();
       
       if (servicioActivo === 'firebase') {
         await cargarEpisodiosDesdeFirebase();
-      } else {
+      } else if (servicioActivo === 'cloudflare') {
         await cargarEpisodiosDesdeCloudflare();
+      } else {
+        await cargarEpisodiosDesdeGoogleSheets();
       }
       
-      // Después de cargar episodios, cargar recomendaciones
       await cargarSeriesRecomendadas();
-      
-      // Gestionar la posición de recomendaciones según el dispositivo
       gestionarPosicionRecomendaciones();
     }
 
     function mostrarMensajeCarga() {
       const videoContainer = document.getElementById('videoContainer');
+      let servicioNombre = '';
+      
+      if (servicioActivo === 'firebase') servicioNombre = 'Firebase';
+      else if (servicioActivo === 'cloudflare') servicioNombre = 'Cloudflare';
+      else servicioNombre = 'Google Sheets';
+      
       videoContainer.innerHTML = `
         <div style="padding: 40px; text-align: center; background: #e9ecef; border-radius: 10px;">
           <div style="margin-bottom: 15px;">⏳</div>
           <h3 style="margin-top: 0; color: #003a73;">Cargando episodios...</h3>
           <p>${nombreSerie}</p>
           <p>${temporada} - ${idioma}</p>
-          <p style="font-size: 12px; color: #666;">Servicio: ${servicioActivo === 'firebase' ? 'Firebase' : 'Cloudflare'}</p>
+          <p style="font-size: 12px; color: #666;">Servicio: ${servicioNombre}</p>
         </div>
       `;
+    }
+
+    /* ==================== NUEVA FUNCIÓN: GOOGLE SHEETS ==================== */
+    async function cargarEpisodiosDesdeGoogleSheets() {
+      try {
+        console.log("Cargando desde Google Sheets...");
+        
+        // URL para obtener datos de la hoja iframes
+        const csvUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_CONFIG.SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(GOOGLE_SHEETS_CONFIG.HOJA_IFRAMES)}`;
+        
+        console.log("URL Sheets:", csvUrl);
+        const response = await fetch(csvUrl);
+        
+        if (!response.ok) {
+          throw new Error(`Error HTTP: ${response.status}`);
+        }
+        
+        const csvText = await response.text();
+        console.log("Datos CSV recibidos:", csvText.substring(0, 500));
+        
+        // Parsear CSV
+        const rows = parseGoogleSheetsCSV(csvText);
+        
+        if (rows.length === 0) {
+          throw new Error("No se encontraron datos en Google Sheets");
+        }
+        
+        episodios = [];
+        const servidoresDisponibles = new Set();
+        
+        // Asumimos esta estructura de columnas (ajusta según tu hoja):
+        // Columna A: Nombre de la serie
+        // Columna B: Temporada
+        // Columna C: Idioma
+        // Columna D: Servidor
+        // Columna E: Episodio
+        // Columna F: Iframe
+        
+        for (let i = 0; i < rows.length; i++) {
+          const row = rows[i];
+          
+          // Saltar encabezado si existe
+          if (i === 0 && (row[0]?.toLowerCase().includes('nombre') || row[0]?.toLowerCase().includes('serie'))) {
+            console.log("Encabezados encontrados:", row);
+            continue;
+          }
+          
+          const nombreSerieCSV = (row[0] || '').trim();
+          const temporadaCSV = (row[1] || '').trim();
+          const idiomaCSV = (row[2] || '').trim();
+          const servidorCSV = (row[3] || '').trim();
+          const episodioCSV = (row[4] || '').trim();
+          const iframeCSV = (row[5] || '').trim();
+          
+          // Filtrar por la serie y temporada actual
+          if (nombreSerieCSV !== nombreSerie || temporadaCSV !== temporada) {
+            continue;
+          }
+          
+          // Filtrar por idioma (o usar el primer idioma disponible si no coincide)
+          if (i === 1 && idiomaCSV !== idioma) {
+            // Si el primer registro tiene idioma diferente, cambiar el idioma global
+            idioma = idiomaCSV;
+            console.log(`Idioma cambiado a: ${idioma}`);
+          }
+          
+          if (idiomaCSV !== idioma) {
+            continue;
+          }
+          
+          if (!episodioCSV || !iframeCSV || !servidorCSV) {
+            console.warn("Fila ignorada - datos incompletos:", row);
+            continue;
+          }
+          
+          // Agregar servidor a la lista de disponibles
+          servidoresDisponibles.add(servidorCSV);
+          
+          // Buscar o crear el episodio
+          let episodio = episodios.find(e => e.name === episodioCSV);
+          if (!episodio) {
+            episodio = { name: episodioCSV, embeds: {} };
+            episodios.push(episodio);
+          }
+          
+          // Agregar el iframe para este servidor
+          episodio.embeds[servidorCSV] = iframeCSV;
+        }
+        
+        if (episodios.length === 0) {
+          throw new Error(`No se encontraron episodios para ${nombreSerie} - ${temporada} (${idioma}) en Google Sheets`);
+        }
+        
+        // Ordenar episodios
+        episodios.sort((a, b) => a.name.localeCompare(b.name, 'es', { numeric: true }));
+        
+        // Seleccionar primer servidor disponible
+        servidorActivo = Array.from(servidoresDisponibles)[0] || null;
+        
+        if (!servidorActivo) {
+          throw new Error("No se encontraron servidores disponibles");
+        }
+        
+        updateHeaderInfo();
+        renderEpisodeSelector();
+        renderServerOptions();
+        changeVideo(servidorActivo);
+        renderSidebar();
+        
+        console.log(`Cargados ${episodios.length} episodios desde Google Sheets`);
+        
+      } catch (error) {
+        console.error("Error cargando desde Google Sheets:", error);
+        // Si Google Sheets falla, intentar con Firebase automáticamente
+        if (servicioActivo === 'sheets') {
+          servicioActivo = 'firebase';
+          updateServiceUI();
+          await cargarEpisodiosDesdeFirebase();
+        }
+      }
+    }
+
+    // Función auxiliar para parsear CSV (igual que en el menú principal)
+    function parseGoogleSheetsCSV(text) {
+      const rows = [];
+      const lines = text.split('\n');
+      
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        
+        const row = [];
+        let currentCell = '';
+        let insideQuotes = false;
+        
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+          
+          if (char === '"') {
+            insideQuotes = !insideQuotes;
+          } else if (char === ',' && !insideQuotes) {
+            row.push(currentCell.trim());
+            currentCell = '';
+          } else {
+            currentCell += char;
+          }
+        }
+        
+        row.push(currentCell.trim());
+        
+        const cleanedRow = row.map(cell => {
+          return cell.replace(/^"|"$/g, '');
+        });
+        
+        rows.push(cleanedRow);
+      }
+      
+      return rows;
     }
 
     /* ==================== FUNCIONES PARA POSICIÓN DE RECOMENDACIONES ==================== */
@@ -828,11 +1014,9 @@
       const recomendacionesMobile = document.getElementById('recomendacionesMobile');
       
       if (isMobile) {
-        // En móviles: ocultar en desktop, mostrar en mobile
         recomendacionesDesktop.style.display = 'none';
         recomendacionesMobile.style.display = 'block';
         
-        // Copiar el contenido de recomendaciones a la versión móvil
         const gridDesktop = document.getElementById('recomendacionesGrid');
         const gridMobile = document.getElementById('recomendacionesGridMobile');
         
@@ -840,23 +1024,22 @@
           gridMobile.innerHTML = gridDesktop.innerHTML;
         }
       } else {
-        // En PC: mostrar en desktop, ocultar en mobile
         recomendacionesDesktop.style.display = 'block';
         recomendacionesMobile.style.display = 'none';
       }
     }
 
-    // Escuchar cambios de tamaño de ventana
     window.addEventListener('resize', gestionarPosicionRecomendaciones);
 
-    /* ==================== FUNCIONES PARA SERIES RECOMENDADAS ==================== */
+    /* ==================== FUNCIONES PARA SERIES RECOMENDADAS (ACTUALIZADAS) ==================== */
     async function cargarSeriesRecomendadas() {
       try {
-        // Obtener todas las series disponibles
         if (servicioActivo === 'firebase') {
           await cargarSeriesRecomendadasFirebase();
-        } else {
+        } else if (servicioActivo === 'cloudflare') {
           await cargarSeriesRecomendadasCloudflare();
+        } else {
+          await cargarSeriesRecomendadasGoogleSheets();
         }
       } catch (error) {
         console.error("Error cargando series recomendadas:", error);
@@ -864,20 +1047,86 @@
       }
     }
 
+    /* ==================== NUEVA FUNCIÓN: RECOMENDACIONES DESDE GOOGLE SHEETS ==================== */
+    async function cargarSeriesRecomendadasGoogleSheets() {
+      try {
+        // URL para obtener datos de la hoja Portadas
+        const csvUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_CONFIG.SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(GOOGLE_SHEETS_CONFIG.HOJA_PORTADAS)}`;
+        
+        const response = await fetch(csvUrl);
+        
+        if (!response.ok) {
+          throw new Error(`Error HTTP: ${response.status}`);
+        }
+        
+        const csvText = await response.text();
+        const rows = parseGoogleSheetsCSV(csvText);
+        
+        const todasSeries = [];
+        const temporadasMismaSerie = [];
+        
+        // Asumimos esta estructura para Portadas (igual que en el menú principal):
+        // Columna A: Nombre de la serie
+        // Columna B: Temporada completa (ej: "Temporada 01 - Sub Español")
+        // Columna C: URL de la imagen
+        
+        for (let i = 0; i < rows.length; i++) {
+          const row = rows[i];
+          
+          // Saltar encabezado
+          if (i === 0 && (row[0]?.toLowerCase().includes('nombre') || row[0]?.toLowerCase().includes('serie'))) {
+            continue;
+          }
+          
+          const nombreSerieActual = (row[0] || '').trim();
+          const temporadaCompleta = (row[1] || '').trim();
+          const imagen = (row[2] || '').trim() || "https://via.placeholder.com/300x400?text=Sin+Imagen";
+          
+          if (!nombreSerieActual || !temporadaCompleta) {
+            continue;
+          }
+          
+          const serieData = {
+            nombre: nombreSerieActual,
+            temporadaCompleta: temporadaCompleta,
+            imagen: imagen
+          };
+          
+          // Separar temporadas de la misma serie
+          if (nombreSerieActual === nombreSerie) {
+            // Saltar la temporada actual
+            if (temporadaCompleta !== `${temporada} - ${idioma}`) {
+              temporadasMismaSerie.push(serieData);
+            }
+          } else {
+            todasSeries.push(serieData);
+          }
+        }
+        
+        todasLasSeriesRecomendadas = todasSeries;
+        mostrarRecomendaciones(temporadasMismaSerie);
+        
+      } catch (error) {
+        console.error("Error cargando recomendaciones desde Google Sheets:", error);
+        throw error;
+      }
+    }
+
+    /* ==================== FUNCIONES EXISTENTES (MANTENIDAS SIN CAMBIOS) ==================== */
+    // [Todas las funciones existentes se mantienen igual, solo se actualizan para manejar el tercer servicio]
+    
     async function cargarSeriesRecomendadasFirebase() {
       try {
         const snapshotSeries = await db.collection("animes-series-portadas").get();
         const todasSeries = [];
         const temporadasMismaSerie = [];
 
-        // Recopilar todas las series
         for (const docSerie of snapshotSeries.docs) {
           const nombreSerieActual = docSerie.id;
           
           const snapshotTemporadas = await db.collection("animes-series-portadas")
             .doc(nombreSerieActual).collection("Temporadas").get();
 
-          // Usar for...of en lugar de forEach para poder usar continue
           const temporadasDocs = snapshotTemporadas.docs;
           for (const docTemporada of temporadasDocs) {
             const temporadaCompleta = docTemporada.id;
@@ -890,9 +1139,7 @@
               imagen: imagen
             };
 
-            // Separar temporadas de la misma serie
             if (nombreSerieActual === nombreSerie) {
-              // Saltar la temporada actual que ya está viendo el usuario
               if (temporadaCompleta !== `${temporada} - ${idioma}`) {
                 temporadasMismaSerie.push(serieData);
               }
@@ -922,7 +1169,6 @@
         const todasSeries = [];
         const temporadasMismaSerie = [];
 
-        // Procesar datos de Cloudflare - usar for...of en lugar de forEach
         for (const portada of portadas) {
           const nombreSerieActual = portada.nombreSerie;
           const temporadaCompleta = portada.temporada;
@@ -933,9 +1179,7 @@
             imagen: portada.imagen || "https://via.placeholder.com/300x400?text=Sin+Imagen"
           };
 
-          // Separar temporadas de la misma serie
           if (nombreSerieActual === nombreSerie) {
-            // Saltar la temporada actual que ya está viendo el usuario
             if (temporadaCompleta !== `${temporada} - ${idioma}`) {
               temporadasMismaSerie.push(serieData);
             }
@@ -956,7 +1200,6 @@
       const recomendacionesGrid = document.getElementById('recomendacionesGrid');
       const recomendacionesGridMobile = document.getElementById('recomendacionesGridMobile');
       
-      // Mostrar mensaje de carga
       const loadingHTML = `
         <div class="loading-recomendaciones">
           <div style="margin-bottom: 10px;">⏳</div>
@@ -969,7 +1212,6 @@
         recomendacionesGridMobile.innerHTML = loadingHTML;
       }
 
-      // Filtrar y seleccionar 3 series recomendadas
       const recomendaciones = seleccionarRecomendaciones(temporadasMismaSerie);
       
       if (recomendaciones.length === 0) {
@@ -985,7 +1227,6 @@
         return;
       }
 
-      // Mostrar las 3 cards
       const cardsHTML = generarCardsHTML(recomendaciones);
       recomendacionesGrid.innerHTML = cardsHTML;
       if (recomendacionesGridMobile) {
@@ -996,7 +1237,6 @@
     function generarCardsHTML(recomendaciones) {
       let html = '';
       for (const serie of recomendaciones) {
-        // Escapar comillas simples en los strings
         const nombreEscapado = serie.nombre.replace(/'/g, "\\'");
         const temporadaEscapada = serie.temporadaCompleta.replace(/'/g, "\\'");
         
@@ -1019,20 +1259,16 @@
     function seleccionarRecomendaciones(temporadasMismaSerie = []) {
       const resultado = [];
       
-      // 1. PRIORIDAD: Agregar temporadas de la misma serie (hasta 2)
       for (let i = 0; i < Math.min(temporadasMismaSerie.length, 2); i++) {
         resultado.push(temporadasMismaSerie[i]);
       }
       
-      // Si ya tenemos 3 recomendaciones, retornar
       if (resultado.length >= 3) {
         return resultado.slice(0, 3);
       }
       
-      // 2. Buscar series con nombres similares
       const seriesSimilares = [];
       for (const serie of todasLasSeriesRecomendadas) {
-        // Verificar si ya está en resultado
         let yaExiste = false;
         for (const r of resultado) {
           if (r.nombre === serie.nombre && r.temporadaCompleta === serie.temporadaCompleta) {
@@ -1042,11 +1278,9 @@
         }
         if (yaExiste) continue;
         
-        // Buscar palabras clave comunes
         const palabrasSerieActual = nombreSerie.toLowerCase().split(' ');
         const palabrasSerieOtra = serie.nombre.toLowerCase().split(' ');
         
-        // Verificar si comparten alguna palabra (excluyendo artículos y preposiciones)
         const palabrasComunes = ['el', 'la', 'los', 'las', 'un', 'una', 'unos', 'unas', 'de', 'del', 'y', 'e', 'o', 'u', 'en', 'a', 'al'];
         
         let esSimilar = false;
@@ -1067,31 +1301,25 @@
         }
       }
       
-      // Agregar series similares hasta completar 3
       for (const similar of seriesSimilares) {
         if (resultado.length >= 3) break;
         resultado.push(similar);
       }
       
-      // Si ya tenemos 3 recomendaciones, retornar
       if (resultado.length >= 3) {
         return resultado.slice(0, 3);
       }
       
-      // 3. Finalmente, agregar series aleatorias si aún no tenemos 3
       const seriesAleatorias = [...todasLasSeriesRecomendadas];
       
-      // Mezclar aleatoriamente
       for (let i = seriesAleatorias.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [seriesAleatorias[i], seriesAleatorias[j]] = [seriesAleatorias[j], seriesAleatorias[i]];
       }
       
-      // Agregar series aleatorias únicas
       for (const aleatoria of seriesAleatorias) {
         if (resultado.length >= 3) break;
         
-        // Verificar que no sea duplicado
         let esDuplicado = false;
         for (const r of resultado) {
           if (r.nombre === aleatoria.nombre && r.temporadaCompleta === aleatoria.temporadaCompleta) {
@@ -1125,288 +1353,203 @@
       }
     }
 
-    /* ==================== FUNCIÓN MODIFICADA: cargarSerieRecomendada ==================== */
-function cargarSerieRecomendada(serieNombre, temporadaCompleta) {
-  // Decodificar los parámetros
-  serieNombre = decodeURIComponent(serieNombre);
-  temporadaCompleta = decodeURIComponent(temporadaCompleta);
-  
-  // Mostrar mensaje de carga completo
-  mostrarMensajeCargaCompleta(serieNombre, temporadaCompleta);
-  
-  // Actualizar los parámetros globales
-  nombreSerie = serieNombre;
-  const tempIdioma = temporadaCompleta;
-  
-  // Separar temporada e idioma
-  if (tempIdioma.includes(" - ")) {
-    const partes = tempIdioma.split(" - ");
-    temporada = partes[0] || "";
-    idioma = partes[1] || "Sub Español";
-  } else {
-    temporada = tempIdioma;
-    idioma = "Sub Español";
-  }
-  
-  // Actualizar la URL sin recargar la página
-  const nuevaURL = `reproductor_universal.html?serie=${encodeURIComponent(serieNombre)}&temporada=${encodeURIComponent(temporadaCompleta)}`;
-  window.history.pushState({}, '', nuevaURL);
-  
-  // Actualizar título de la página
-  document.title = `${nombreSerie} - ${temporada}`;
-  
-  // Reiniciar el episodio actual
-  currentEpisode = 0;
-  
-  // Limpiar el selector de episodios inmediatamente
-  const selector = document.querySelector('.episode-selector');
-  selector.innerHTML = '<option value="">Cargando episodios...</option>';
-  
-  // Actualizar información de la serie en el sidebar
-  document.getElementById("serieTitle").textContent = nombreSerie;
-  document.getElementById("seasonLang").textContent = `${temporada} - ${idioma}`;
-  document.getElementById("episodeCount").textContent = "Cargando...";
-  
-  // Limpiar la lista de episodios en el sidebar
-  const sidebar = document.getElementById('sidebarPlaylist');
-  sidebar.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">Cargando episodios...</div>';
-  
-  // Limpiar selector de servidores
-  const serverSelect = document.getElementById("serverSelect");
-  serverSelect.innerHTML = '<option value="">Cargando servidores...</option>';
-  
-  // Cargar los episodios de la nueva serie
-  cargarEpisodiosDeSerieRecomendada();
-}
-
-/* ==================== NUEVA FUNCIÓN: mostrarMensajeCargaCompleta ==================== */
-function mostrarMensajeCargaCompleta(serieNombre, temporadaCompleta) {
-  const videoContainer = document.getElementById('videoContainer');
-  const videoDetails = document.getElementById("videoDetails");
-  
-  // Mostrar mensaje de carga en el reproductor
-  videoContainer.innerHTML = `
-    <div style="padding: 40px; text-align: center; background: #e9ecef; border-radius: 10px;">
-      <div style="margin-bottom: 15px;">⏳</div>
-      <h3 style="margin-top: 0; color: #003a73;">Cargando nueva serie...</h3>
-      <p><strong>${serieNombre}</strong></p>
-      <p>${temporadaCompleta}</p>
-      <p style="font-size: 12px; color: #666;">Por favor espera...</p>
-    </div>
-  `;
-  
-  // Actualizar detalles del video
-  videoDetails.textContent = `${serieNombre} | ${temporadaCompleta} | Cargando...`;
-}
-
-/* ==================== NUEVA FUNCIÓN: cargarEpisodiosDeSerieRecomendada ==================== */
-async function cargarEpisodiosDeSerieRecomendada() {
-  if (!nombreSerie || !temporada) return;
-  
-  // Usar el servicio activo actual
-  if (servicioActivo === 'firebase') {
-    await cargarEpisodiosDesdeFirebaseParaRecomendada();
-  } else {
-    await cargarEpisodiosDesdeCloudflareParaRecomendada();
-  }
-  
-  // Después de cargar episodios, cargar recomendaciones
-  await cargarSeriesRecomendadas();
-}
-
-/* ==================== NUEVA FUNCIÓN: cargarEpisodiosDesdeFirebaseParaRecomendada ==================== */
-async function cargarEpisodiosDesdeFirebaseParaRecomendada() {
-  try {
-    // Verificar si existe el documento de idioma
-    const idiomaDocRef = db
-      .collection("animes-series").doc(nombreSerie)
-      .collection("Temporadas").doc(temporada)
-      .collection("Idiomas").doc(idioma);
-    
-    const idiomaDoc = await idiomaDocRef.get();
-    
-    if (!idiomaDoc.exists) {
-      // Intentar con idioma alternativo si el especificado no existe
-      const idiomasSnap = await db
-        .collection("animes-series").doc(nombreSerie)
-        .collection("Temporadas").doc(temporada)
-        .collection("Idiomas").get();
+    /* ==================== FUNCIONES PARA CARGA DE SERIE RECOMENDADA (ACTUALIZADAS) ==================== */
+    function cargarSerieRecomendada(serieNombre, temporadaCompleta) {
+      serieNombre = decodeURIComponent(serieNombre);
+      temporadaCompleta = decodeURIComponent(temporadaCompleta);
       
-      if (idiomasSnap.empty) {
-        throw new Error(`No se encontró el idioma "${idioma}" ni alternativos`);
-      }
+      mostrarMensajeCargaCompleta(serieNombre, temporadaCompleta);
       
-      // Usar el primer idioma disponible
-      const primerIdioma = idiomasSnap.docs[0].id;
-      idioma = primerIdioma;
-    }
-
-    const servidoresSnap = await db
-      .collection("animes-series").doc(nombreSerie)
-      .collection("Temporadas").doc(temporada)
-      .collection("Idiomas").doc(idioma)
-      .collection("Servidores").get();
-
-    episodios = [];
-
-    for (const servidorDoc of servidoresSnap.docs) {
-      const servidor = servidorDoc.id;
-      const epsSnapshot = await db
-        .collection("animes-series").doc(nombreSerie)
-        .collection("Temporadas").doc(temporada)
-        .collection("Idiomas").doc(idioma)
-        .collection("Servidores").doc(servidor)
-        .collection("Episodios").get();
-
-      epsSnapshot.forEach(doc => {
-        const nombreEp = doc.id;
-        const iframe = doc.data().iframe;
-
-        let episodio = episodios.find(e => e.name === nombreEp);
-        if (!episodio) {
-          episodio = { name: nombreEp, embeds: {} };
-          episodios.push(episodio);
-        }
-
-        episodio.embeds[servidor] = iframe;
-      });
-    }
-
-    if (episodios.length === 0) {
-      throw new Error(`No se encontraron episodios para ${nombreSerie} - ${temporada} (${idioma})`);
-    }
-
-    episodios.sort((a, b) => a.name.localeCompare(b.name, 'es', { numeric: true }));
-    servidorActivo = Object.keys(episodios[0].embeds)[0];
-    updateHeaderInfo();
-    renderEpisodeSelector();
-    renderServerOptions();
-    changeVideo(servidorActivo);
-    renderSidebar();
-  } catch (error) {
-    console.error("Error cargando desde Firebase:", error);
-    mostrarErrorCargaRecomendada(error.message);
-    // Si Firebase falla, intentar con Cloudflare automáticamente
-    if (servicioActivo === 'firebase') {
-      servicioActivo = 'cloudflare';
-      updateServiceUI();
-      await cargarEpisodiosDesdeCloudflareParaRecomendada();
-    }
-  }
-}
-
-/* ==================== NUEVA FUNCIÓN: cargarEpisodiosDesdeCloudflareParaRecomendada ==================== */
-async function cargarEpisodiosDesdeCloudflareParaRecomendada() {
-  try {
-    // Obtener servidores disponibles para este idioma específico
-    const servidoresResponse = await fetch(
-      `${CLOUDFLARE_BASE_URL}/servidores?serie=${encodeURIComponent(nombreSerie)}&temporada=${encodeURIComponent(temporada)}&idioma=${encodeURIComponent(idioma)}`
-    );
-    
-    if (!servidoresResponse.ok) {
-      throw new Error(`Error HTTP: ${servidoresResponse.status}`);
-    }
-    
-    const servidores = await servidoresResponse.json();
-    
-    if (!servidores || servidores.error) {
-      // Intentar obtener lista de idiomas disponibles
-      const idiomasResponse = await fetch(
-        `${CLOUDFLARE_BASE_URL}/idiomas?serie=${encodeURIComponent(nombreSerie)}&temporada=${encodeURIComponent(temporada)}`
-      );
+      nombreSerie = serieNombre;
+      const tempIdioma = temporadaCompleta;
       
-      if (idiomasResponse.ok) {
-        const idiomasDisponibles = await idiomasResponse.json();
-        throw new Error(`Idioma "${idioma}" no disponible. Idiomas disponibles: ${idiomasDisponibles.join(', ')}`);
+      if (tempIdioma.includes(" - ")) {
+        const partes = tempIdioma.split(" - ");
+        temporada = partes[0] || "";
+        idioma = partes[1] || "Sub Español";
       } else {
-        throw new Error("Error obteniendo servidores");
+        temporada = tempIdioma;
+        idioma = "Sub Español";
       }
+      
+      const nuevaURL = `reproductor_universal.html?serie=${encodeURIComponent(serieNombre)}&temporada=${encodeURIComponent(temporadaCompleta)}`;
+      window.history.pushState({}, '', nuevaURL);
+      
+      document.title = `${nombreSerie} - ${temporada}`;
+      currentEpisode = 0;
+      
+      const selector = document.querySelector('.episode-selector');
+      selector.innerHTML = '<option value="">Cargando episodios...</option>';
+      
+      document.getElementById("serieTitle").textContent = nombreSerie;
+      document.getElementById("seasonLang").textContent = `${temporada} - ${idioma}`;
+      document.getElementById("episodeCount").textContent = "Cargando...";
+      
+      const sidebar = document.getElementById('sidebarPlaylist');
+      sidebar.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">Cargando episodios...</div>';
+      
+      const serverSelect = document.getElementById("serverSelect");
+      serverSelect.innerHTML = '<option value="">Cargando servidores...</option>';
+      
+      cargarEpisodiosDeSerieRecomendada();
     }
 
-    episodios = [];
-
-    // Para cada servidor, obtener sus episodios
-    for (const servidor of servidores) {
-      const episodiosResponse = await fetch(
-        `${CLOUDFLARE_BASE_URL}/episodios?serie=${encodeURIComponent(nombreSerie)}&temporada=${encodeURIComponent(temporada)}&idioma=${encodeURIComponent(idioma)}&servidor=${encodeURIComponent(servidor)}`
-      );
+    function mostrarMensajeCargaCompleta(serieNombre, temporadaCompleta) {
+      const videoContainer = document.getElementById('videoContainer');
+      const videoDetails = document.getElementById("videoDetails");
       
-      if (!episodiosResponse.ok) {
-        console.warn(`No se pudieron obtener episodios para ${servidor}`);
-        continue;
+      let servicioNombre = '';
+      if (servicioActivo === 'firebase') servicioNombre = 'Firebase';
+      else if (servicioActivo === 'cloudflare') servicioNombre = 'Cloudflare';
+      else servicioNombre = 'Google Sheets';
+      
+      videoContainer.innerHTML = `
+        <div style="padding: 40px; text-align: center; background: #e9ecef; border-radius: 10px;">
+          <div style="margin-bottom: 15px;">⏳</div>
+          <h3 style="margin-top: 0; color: #003a73;">Cargando nueva serie...</h3>
+          <p><strong>${serieNombre}</strong></p>
+          <p>${temporadaCompleta}</p>
+          <p style="font-size: 12px; color: #666;">Servicio: ${servicioNombre}</p>
+        </div>
+      `;
+      
+      videoDetails.textContent = `${serieNombre} | ${temporadaCompleta} | Cargando...`;
+    }
+
+    async function cargarEpisodiosDeSerieRecomendada() {
+      if (!nombreSerie || !temporada) return;
+      
+      if (servicioActivo === 'firebase') {
+        await cargarEpisodiosDesdeFirebaseParaRecomendada();
+      } else if (servicioActivo === 'cloudflare') {
+        await cargarEpisodiosDesdeCloudflareParaRecomendada();
+      } else {
+        await cargarEpisodiosDesdeGoogleSheetsParaRecomendada();
       }
       
-      const episodiosData = await episodiosResponse.json();
-      
-      if (!episodiosData || episodiosData.error) {
-        console.warn(`Error obteniendo episodios para ${servidor}:`, episodiosData.error);
-        continue;
-      }
+      await cargarSeriesRecomendadas();
+    }
 
-      // Procesar episodios del servidor
-      episodiosData.forEach(epData => {
-        let episodio = episodios.find(e => e.name === epData.episodio);
-        if (!episodio) {
-          episodio = { name: epData.episodio, embeds: {} };
-          episodios.push(episodio);
+    /* ==================== NUEVA FUNCIÓN: CARGA DE GOOGLE SHEETS PARA RECOMENDADA ==================== */
+    async function cargarEpisodiosDesdeGoogleSheetsParaRecomendada() {
+      try {
+        console.log("Cargando serie recomendada desde Google Sheets...");
+        
+        const csvUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_CONFIG.SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(GOOGLE_SHEETS_CONFIG.HOJA_IFRAMES)}`;
+        
+        const response = await fetch(csvUrl);
+        
+        if (!response.ok) {
+          throw new Error(`Error HTTP: ${response.status}`);
         }
-        episodio.embeds[servidor] = epData.iframe;
-      });
+        
+        const csvText = await response.text();
+        const rows = parseGoogleSheetsCSV(csvText);
+        
+        episodios = [];
+        const servidoresDisponibles = new Set();
+        
+        for (let i = 0; i < rows.length; i++) {
+          const row = rows[i];
+          
+          if (i === 0 && (row[0]?.toLowerCase().includes('nombre') || row[0]?.toLowerCase().includes('serie'))) {
+            continue;
+          }
+          
+          const nombreSerieCSV = (row[0] || '').trim();
+          const temporadaCSV = (row[1] || '').trim();
+          const idiomaCSV = (row[2] || '').trim();
+          const servidorCSV = (row[3] || '').trim();
+          const episodioCSV = (row[4] || '').trim();
+          const iframeCSV = (row[5] || '').trim();
+          
+          if (nombreSerieCSV !== nombreSerie || temporadaCSV !== temporada) {
+            continue;
+          }
+          
+          if (i === 1 && idiomaCSV !== idioma) {
+            idioma = idiomaCSV;
+            console.log(`Idioma cambiado a: ${idioma}`);
+          }
+          
+          if (idiomaCSV !== idioma) {
+            continue;
+          }
+          
+          if (!episodioCSV || !iframeCSV || !servidorCSV) {
+            continue;
+          }
+          
+          servidoresDisponibles.add(servidorCSV);
+          
+          let episodio = episodios.find(e => e.name === episodioCSV);
+          if (!episodio) {
+            episodio = { name: episodioCSV, embeds: {} };
+            episodios.push(episodio);
+          }
+          
+          episodio.embeds[servidorCSV] = iframeCSV;
+        }
+        
+        if (episodios.length === 0) {
+          throw new Error(`No se encontraron episodios para ${nombreSerie} - ${temporada} (${idioma}) en Google Sheets`);
+        }
+        
+        episodios.sort((a, b) => a.name.localeCompare(b.name, 'es', { numeric: true }));
+        servidorActivo = Array.from(servidoresDisponibles)[0] || null;
+        
+        if (!servidorActivo) {
+          throw new Error("No se encontraron servidores disponibles");
+        }
+        
+        updateHeaderInfo();
+        renderEpisodeSelector();
+        renderServerOptions();
+        changeVideo(servidorActivo);
+        renderSidebar();
+        
+      } catch (error) {
+        console.error("Error cargando desde Google Sheets:", error);
+        mostrarErrorCargaRecomendada(error.message);
+        
+        if (servicioActivo === 'sheets') {
+          servicioActivo = 'firebase';
+          updateServiceUI();
+          await cargarEpisodiosDesdeFirebaseParaRecomendada();
+        }
+      }
     }
 
-    if (episodios.length === 0) {
-      throw new Error(`No se encontraron episodios en Cloudflare para ${idioma}`);
+    function mostrarErrorCargaRecomendada(mensajeError) {
+      const videoContainer = document.getElementById('videoContainer');
+      const videoDetails = document.getElementById("videoDetails");
+      const selector = document.querySelector('.episode-selector');
+      const sidebar = document.getElementById('sidebarPlaylist');
+      const serverSelect = document.getElementById("serverSelect");
+      
+      videoContainer.innerHTML = `
+        <div style="padding: 40px; text-align: center; background: #fff3cd; border-radius: 10px; color: #856404;">
+          <h3 style="margin-top: 0;">⚠️ Error al cargar la serie</h3>
+          <p>${mensajeError}</p>
+          <button onclick="cargarEpisodiosDeSerieRecomendada()" style="margin-top: 15px; padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            Reintentar
+          </button>
+        </div>
+      `;
+      
+      videoDetails.textContent = `${nombreSerie} | ${temporada} - ${idioma} | Error`;
+      selector.innerHTML = '<option value="">Error al cargar episodios</option>';
+      serverSelect.innerHTML = '<option value="">Error al cargar servidores</option>';
+      sidebar.innerHTML = '<div style="padding: 20px; text-align: center; color: #dc3545;">Error al cargar episodios</div>';
+      
+      document.getElementById("episodeCount").textContent = "0 episodios (Error)";
     }
 
-    episodios.sort((a, b) => a.name.localeCompare(b.name, 'es', { numeric: true }));
-    servidorActivo = Object.keys(episodios[0].embeds)[0];
-    updateHeaderInfo();
-    renderEpisodeSelector();
-    renderServerOptions();
-    changeVideo(servidorActivo);
-    renderSidebar();
-  } catch (error) {
-    console.error("Error cargando desde Cloudflare:", error);
-    mostrarErrorCargaRecomendada(error.message);
-    // Si Cloudflare falla, intentar con Firebase automáticamente
-    if (servicioActivo === 'cloudflare') {
-      servicioActivo = 'firebase';
-      updateServiceUI();
-      await cargarEpisodiosDesdeFirebaseParaRecomendada();
-    }
-  }
-}
-
-/* ==================== NUEVA FUNCIÓN: mostrarErrorCargaRecomendada ==================== */
-function mostrarErrorCargaRecomendada(mensajeError) {
-  const videoContainer = document.getElementById('videoContainer');
-  const videoDetails = document.getElementById("videoDetails");
-  const selector = document.querySelector('.episode-selector');
-  const sidebar = document.getElementById('sidebarPlaylist');
-  const serverSelect = document.getElementById("serverSelect");
-  
-  videoContainer.innerHTML = `
-    <div style="padding: 40px; text-align: center; background: #fff3cd; border-radius: 10px; color: #856404;">
-      <h3 style="margin-top: 0;">⚠️ Error al cargar la serie</h3>
-      <p>${mensajeError}</p>
-      <button onclick="cargarEpisodiosDeSerieRecomendada()" style="margin-top: 15px; padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">
-        Reintentar
-      </button>
-    </div>
-  `;
-  
-  videoDetails.textContent = `${nombreSerie} | ${temporada} - ${idioma} | Error`;
-  selector.innerHTML = '<option value="">Error al cargar episodios</option>';
-  serverSelect.innerHTML = '<option value="">Error al cargar servidores</option>';
-  sidebar.innerHTML = '<div style="padding: 20px; text-align: center; color: #dc3545;">Error al cargar episodios</div>';
-  
-  document.getElementById("episodeCount").textContent = "0 episodios (Error)";
-}
-
-    /* ==================== FIREBASE ==================== */
+    /* ==================== FUNCIONES EXISTENTES DE FIREBASE Y CLOUDFLARE (SIN CAMBIOS) ==================== */
+    // [Estas funciones se mantienen exactamente igual que en tu código original]
+    
     async function cargarEpisodiosDesdeFirebase() {
       try {
-        // Verificar si existe el documento de idioma
         const idiomaDocRef = db
           .collection("animes-series").doc(nombreSerie)
           .collection("Temporadas").doc(temporada)
@@ -1415,7 +1558,6 @@ function mostrarErrorCargaRecomendada(mensajeError) {
         const idiomaDoc = await idiomaDocRef.get();
         
         if (!idiomaDoc.exists) {
-          // Intentar con idioma alternativo si el especificado no existe
           const idiomasSnap = await db
             .collection("animes-series").doc(nombreSerie)
             .collection("Temporadas").doc(temporada)
@@ -1425,7 +1567,6 @@ function mostrarErrorCargaRecomendada(mensajeError) {
             throw new Error(`No se encontró el idioma "${idioma}" ni alternativos`);
           }
           
-          // Usar el primer idioma disponible
           const primerIdioma = idiomasSnap.docs[0].id;
           idioma = primerIdioma;
         }
@@ -1474,7 +1615,6 @@ function mostrarErrorCargaRecomendada(mensajeError) {
         renderSidebar();
       } catch (error) {
         console.error("Error cargando desde Firebase:", error);
-        // Si Firebase falla, intentar con Cloudflare automáticamente
         if (servicioActivo === 'firebase') {
           servicioActivo = 'cloudflare';
           updateServiceUI();
@@ -1483,10 +1623,8 @@ function mostrarErrorCargaRecomendada(mensajeError) {
       }
     }
 
-    /* ==================== CLOUDFLARE ==================== */
     async function cargarEpisodiosDesdeCloudflare() {
       try {
-        // Obtener servidores disponibles para este idioma específico
         const servidoresResponse = await fetch(
           `${CLOUDFLARE_BASE_URL}/servidores?serie=${encodeURIComponent(nombreSerie)}&temporada=${encodeURIComponent(temporada)}&idioma=${encodeURIComponent(idioma)}`
         );
@@ -1498,7 +1636,6 @@ function mostrarErrorCargaRecomendada(mensajeError) {
         const servidores = await servidoresResponse.json();
         
         if (!servidores || servidores.error) {
-          // Intentar obtener lista de idiomas disponibles
           const idiomasResponse = await fetch(
             `${CLOUDFLARE_BASE_URL}/idiomas?serie=${encodeURIComponent(nombreSerie)}&temporada=${encodeURIComponent(temporada)}`
           );
@@ -1513,7 +1650,6 @@ function mostrarErrorCargaRecomendada(mensajeError) {
 
         episodios = [];
 
-        // Para cada servidor, obtener sus episodios
         for (const servidor of servidores) {
           const episodiosResponse = await fetch(
             `${CLOUDFLARE_BASE_URL}/episodios?serie=${encodeURIComponent(nombreSerie)}&temporada=${encodeURIComponent(temporada)}&idioma=${encodeURIComponent(idioma)}&servidor=${encodeURIComponent(servidor)}`
@@ -1531,7 +1667,6 @@ function mostrarErrorCargaRecomendada(mensajeError) {
             continue;
           }
 
-          // Procesar episodios del servidor
           episodiosData.forEach(epData => {
             let episodio = episodios.find(e => e.name === epData.episodio);
             if (!episodio) {
@@ -1555,7 +1690,6 @@ function mostrarErrorCargaRecomendada(mensajeError) {
         renderSidebar();
       } catch (error) {
         console.error("Error cargando desde Cloudflare:", error);
-        // Si Cloudflare falla, intentar con Firebase automáticamente
         if (servicioActivo === 'cloudflare') {
           servicioActivo = 'firebase';
           updateServiceUI();
@@ -1564,7 +1698,161 @@ function mostrarErrorCargaRecomendada(mensajeError) {
       }
     }
 
-    /* ==================== FUNCIONES DE REPRODUCCIÓN ==================== */
+    /* ==================== FUNCIONES AUXILIARES SIN CAMBIOS ==================== */
+    // [Todas las funciones auxiliares se mantienen igual]
+    
+    async function cargarEpisodiosDesdeFirebaseParaRecomendada() {
+      try {
+        const idiomaDocRef = db
+          .collection("animes-series").doc(nombreSerie)
+          .collection("Temporadas").doc(temporada)
+          .collection("Idiomas").doc(idioma);
+        
+        const idiomaDoc = await idiomaDocRef.get();
+        
+        if (!idiomaDoc.exists) {
+          const idiomasSnap = await db
+            .collection("animes-series").doc(nombreSerie)
+            .collection("Temporadas").doc(temporada)
+            .collection("Idiomas").get();
+          
+          if (idiomasSnap.empty) {
+            throw new Error(`No se encontró el idioma "${idioma}" ni alternativos`);
+          }
+          
+          const primerIdioma = idiomasSnap.docs[0].id;
+          idioma = primerIdioma;
+        }
+
+        const servidoresSnap = await db
+          .collection("animes-series").doc(nombreSerie)
+          .collection("Temporadas").doc(temporada)
+          .collection("Idiomas").doc(idioma)
+          .collection("Servidores").get();
+
+        episodios = [];
+
+        for (const servidorDoc of servidoresSnap.docs) {
+          const servidor = servidorDoc.id;
+          const epsSnapshot = await db
+            .collection("animes-series").doc(nombreSerie)
+            .collection("Temporadas").doc(temporada)
+            .collection("Idiomas").doc(idioma)
+            .collection("Servidores").doc(servidor)
+            .collection("Episodios").get();
+
+          epsSnapshot.forEach(doc => {
+            const nombreEp = doc.id;
+            const iframe = doc.data().iframe;
+
+            let episodio = episodios.find(e => e.name === nombreEp);
+            if (!episodio) {
+              episodio = { name: nombreEp, embeds: {} };
+              episodios.push(episodio);
+            }
+
+            episodio.embeds[servidor] = iframe;
+          });
+        }
+
+        if (episodios.length === 0) {
+          throw new Error(`No se encontraron episodios para ${nombreSerie} - ${temporada} (${idioma})`);
+        }
+
+        episodios.sort((a, b) => a.name.localeCompare(b.name, 'es', { numeric: true }));
+        servidorActivo = Object.keys(episodios[0].embeds)[0];
+        updateHeaderInfo();
+        renderEpisodeSelector();
+        renderServerOptions();
+        changeVideo(servidorActivo);
+        renderSidebar();
+      } catch (error) {
+        console.error("Error cargando desde Firebase:", error);
+        mostrarErrorCargaRecomendada(error.message);
+        if (servicioActivo === 'firebase') {
+          servicioActivo = 'cloudflare';
+          updateServiceUI();
+          await cargarEpisodiosDesdeCloudflareParaRecomendada();
+        }
+      }
+    }
+
+    async function cargarEpisodiosDesdeCloudflareParaRecomendada() {
+      try {
+        const servidoresResponse = await fetch(
+          `${CLOUDFLARE_BASE_URL}/servidores?serie=${encodeURIComponent(nombreSerie)}&temporada=${encodeURIComponent(temporada)}&idioma=${encodeURIComponent(idioma)}`
+        );
+        
+        if (!servidoresResponse.ok) {
+          throw new Error(`Error HTTP: ${servidoresResponse.status}`);
+        }
+        
+        const servidores = await servidoresResponse.json();
+        
+        if (!servidores || servidores.error) {
+          const idiomasResponse = await fetch(
+            `${CLOUDFLARE_BASE_URL}/idiomas?serie=${encodeURIComponent(nombreSerie)}&temporada=${encodeURIComponent(temporada)}`
+          );
+          
+          if (idiomasResponse.ok) {
+            const idiomasDisponibles = await idiomasResponse.json();
+            throw new Error(`Idioma "${idioma}" no disponible. Idiomas disponibles: ${idiomasDisponibles.join(', ')}`);
+          } else {
+            throw new Error("Error obteniendo servidores");
+          }
+        }
+
+        episodios = [];
+
+        for (const servidor of servidores) {
+          const episodiosResponse = await fetch(
+            `${CLOUDFLARE_BASE_URL}/episodios?serie=${encodeURIComponent(nombreSerie)}&temporada=${encodeURIComponent(temporada)}&idioma=${encodeURIComponent(idioma)}&servidor=${encodeURIComponent(servidor)}`
+          );
+          
+          if (!episodiosResponse.ok) {
+            console.warn(`No se pudieron obtener episodios para ${servidor}`);
+            continue;
+          }
+          
+          const episodiosData = await episodiosResponse.json();
+          
+          if (!episodiosData || episodiosData.error) {
+            console.warn(`Error obteniendo episodios para ${servidor}:`, episodiosData.error);
+            continue;
+          }
+
+          episodiosData.forEach(epData => {
+            let episodio = episodios.find(e => e.name === epData.episodio);
+            if (!episodio) {
+              episodio = { name: epData.episodio, embeds: {} };
+              episodios.push(episodio);
+            }
+            episodio.embeds[servidor] = epData.iframe;
+          });
+        }
+
+        if (episodios.length === 0) {
+          throw new Error(`No se encontraron episodios en Cloudflare para ${idioma}`);
+        }
+
+        episodios.sort((a, b) => a.name.localeCompare(b.name, 'es', { numeric: true }));
+        servidorActivo = Object.keys(episodios[0].embeds)[0];
+        updateHeaderInfo();
+        renderEpisodeSelector();
+        renderServerOptions();
+        changeVideo(servidorActivo);
+        renderSidebar();
+      } catch (error) {
+        console.error("Error cargando desde Cloudflare:", error);
+        mostrarErrorCargaRecomendada(error.message);
+        if (servicioActivo === 'cloudflare') {
+          servicioActivo = 'firebase';
+          updateServiceUI();
+          await cargarEpisodiosDesdeFirebaseParaRecomendada();
+        }
+      }
+    }
+
     function updateHeaderInfo() {
       document.getElementById("serieTitle").textContent = nombreSerie;
       document.getElementById("seasonLang").textContent = `${temporada} - ${idioma}`;
@@ -1657,96 +1945,84 @@ function mostrarErrorCargaRecomendada(mensajeError) {
       }
     }
 
-function changeVideo(servidor) {
-  servidorActivo = servidor;
-  const videoContainer = document.getElementById('videoContainer');
-  const videoDetails = document.getElementById("videoDetails");
+    function changeVideo(servidor) {
+      servidorActivo = servidor;
+      const videoContainer = document.getElementById('videoContainer');
+      const videoDetails = document.getElementById("videoDetails");
 
-  // Limpiar contenido anterior
-  videoContainer.innerHTML = '';
+      videoContainer.innerHTML = '';
 
-  const embed = episodios[currentEpisode].embeds[servidor];
+      const embed = episodios[currentEpisode].embeds[servidor];
 
-  // Si el episodio actual no está disponible en el servidor
-  if (!embed) {
-    videoContainer.innerHTML = `
-      <div style="padding: 20px; background-color: #ffeeee; color: #a94442; border-radius: 10px; text-align: center;">
-        <p style="font-weight: bold;">Este episodio (<strong>${episodios[currentEpisode].name}</strong>) no está disponible en el servidor: <u>${servidor}</u> por varias razones (Copyright o no se pudo subir al Servidor).</p>
-        <button onclick="irAEpisodioDisponible('${servidor.replace(/'/g, "\\'")}')" style="margin-top:10px; padding: 10px 20px; background-color: #003a73; color: white; border: none; border-radius: 8px; cursor: pointer;">
-          Ir a los episodios disponibles
-        </button>
-      </div>
-    `;
-    videoDetails.textContent = `${nombreSerie} | ${temporada} - ${idioma} | ${episodios[currentEpisode].name} | ${servidor} (No disponible)`;
-    renderServerOptions();
-    renderSidebar();
-    return;
-  }
+      if (!embed) {
+        videoContainer.innerHTML = `
+          <div style="padding: 20px; background-color: #ffeeee; color: #a94442; border-radius: 10px; text-align: center;">
+            <p style="font-weight: bold;">Este episodio (<strong>${episodios[currentEpisode].name}</strong>) no está disponible en el servidor: <u>${servidor}</u> por varias razones (Copyright o no se pudo subir al Servidor).</p>
+            <button onclick="irAEpisodioDisponible('${servidor.replace(/'/g, "\\'")}')" style="margin-top:10px; padding: 10px 20px; background-color: #003a73; color: white; border: none; border-radius: 8px; cursor: pointer;">
+              Ir a los episodios disponibles
+            </button>
+          </div>
+        `;
+        videoDetails.textContent = `${nombreSerie} | ${temporada} - ${idioma} | ${episodios[currentEpisode].name} | ${servidor} (No disponible)`;
+        renderServerOptions();
+        renderSidebar();
+        return;
+      }
 
-  if (servidor === 'abyss') {
-    // Crear un iframe directamente sin tocar su contenido
-    const iframe = document.getElementById('abyssIframe') || document.createElement('iframe');
-    iframe.id = 'abyssIframe';
-    iframe.style.display = 'block';
-    iframe.style.width = '100%';
-    iframe.style.minHeight = '440px';
-    iframe.style.border = 'none';
-    iframe.setAttribute('allowfullscreen', '');
-    iframe.setAttribute('loading', 'lazy');
+      if (servidor === 'abyss') {
+        const iframe = document.getElementById('abyssIframe') || document.createElement('iframe');
+        iframe.id = 'abyssIframe';
+        iframe.style.display = 'block';
+        iframe.style.width = '100%';
+        iframe.style.minHeight = '440px';
+        iframe.style.border = 'none';
+        iframe.setAttribute('allowfullscreen', '');
+        iframe.setAttribute('loading', 'lazy');
+        iframe.srcdoc = episodios[currentEpisode].embeds[servidor];
+        videoContainer.appendChild(iframe);
+      } 
+      else if (servidor.toLowerCase().includes('jumpshare')) {
+        const container = document.createElement('div');
+        container.style.position = 'relative';
+        container.style.width = '100%';
+        container.style.paddingBottom = '56.25%';
+        container.style.height = '0';
+        container.style.overflow = 'hidden';
+        container.style.borderRadius = '10px';
+        container.style.backgroundColor = '#000';
+        
+        let modifiedEmbed = embed;
+        
+        if (modifiedEmbed.includes('position: absolute')) {
+          modifiedEmbed = modifiedEmbed.replace(
+            'style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"',
+            'style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"'
+          );
+        } else {
+          modifiedEmbed = modifiedEmbed.replace(
+            '<iframe',
+            '<iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"'
+          );
+        }
+        
+        container.innerHTML = modifiedEmbed;
+        videoContainer.appendChild(container);
+      }
+      else if (servidor === 'Tokio Video') {
+        let modifiedEmbed = embed.replace(/style="[^"]*max-width:[^";]*;?[^"]*"/gi, '');
+        videoContainer.innerHTML = modifiedEmbed;
+      }
+      else {
+        videoContainer.innerHTML = embed;
+      }
 
-    // Insertar sin usar innerHTML ni DOMParser
-    iframe.srcdoc = episodios[currentEpisode].embeds[servidor];
-    videoContainer.appendChild(iframe);
-  } 
-  else if (servidor.toLowerCase().includes('jumpshare')) {
-    // ESPECIAL PARA JUMPSHARE - Crear contenedor específico
-    const container = document.createElement('div');
-    container.style.position = 'relative';
-    container.style.width = '100%';
-    container.style.paddingBottom = '56.25%'; // Relación 16:9
-    container.style.height = '0';
-    container.style.overflow = 'hidden';
-    container.style.borderRadius = '10px';
-    container.style.backgroundColor = '#000';
-    
-    // Modificar el iframe de Jumpshare
-    let modifiedEmbed = embed;
-    
-    // Si el iframe tiene estilos inline, los modificamos
-    if (modifiedEmbed.includes('position: absolute')) {
-      modifiedEmbed = modifiedEmbed.replace(
-        'style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"',
-        'style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"'
-      );
-    } else {
-      // Si no tiene estilos inline, se los añadimos
-      modifiedEmbed = modifiedEmbed.replace(
-        '<iframe',
-        '<iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"'
-      );
+      if (videoDetails) {
+        videoDetails.textContent = `${nombreSerie} | ${temporada} - ${idioma} | ${episodios[currentEpisode].name} | ${servidor}`;
+      }
+
+      renderServerOptions();
+      renderSidebar();
     }
-    
-    container.innerHTML = modifiedEmbed;
-    videoContainer.appendChild(container);
-  }
-  else if (servidor === 'Tokio Video') {
-    // Tokio Video - eliminar max-width
-    let modifiedEmbed = embed.replace(/style="[^"]*max-width:[^";]*;?[^"]*"/gi, '');
-    videoContainer.innerHTML = modifiedEmbed;
-  }
-  else {
-    // Otros servidores
-    videoContainer.innerHTML = embed;
-  }
-
-  // Actualizar detalles
-  if (videoDetails) {
-    videoDetails.textContent = `${nombreSerie} | ${temporada} - ${idioma} | ${episodios[currentEpisode].name} | ${servidor}`;
-  }
-
-  renderServerOptions();
-  renderSidebar();
-}
 
     function irAEpisodioDisponible(servidor) {
       let encontrado = false;
@@ -1776,15 +2052,11 @@ function changeVideo(servidor) {
 
     /* ==================== INICIALIZACIÓN ==================== */
     document.addEventListener('DOMContentLoaded', function() {
-      // Inicializar UI del servicio
       updateServiceUI();
       
-      // Verificar si hay parámetros en la URL
       if (obtenerParametrosURL()) {
-        // Cargar episodios
         cargarEpisodios();
       } else {
-        // Mostrar error si no hay parámetros
         mostrarError("Por favor, selecciona una serie desde el catálogo principal.");
       }
     });

@@ -5,7 +5,7 @@
   <title>Reproductor estilo YouTube - Firebase</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-     body {
+    body {
       margin: 0;
       padding: 0;
       font-family: 'Arial', sans-serif;
@@ -167,7 +167,7 @@
       color: #666;
     }
 
-    /* ======= NUEVO: ESTILOS PARA BOTÓN DE SERVICIO ======= */
+    /* ======= ESTILOS PARA BOTÓN DE SERVICIO ======= */
     .service-toggle {
       display: flex;
       align-items: center;
@@ -212,6 +212,12 @@
     .service-inactive {
       background-color: #ffebee;
       color: #c62828;
+    }
+
+    /* ======= NUEVO: ESTILO PARA GOOGLE SHEETS ======= */
+    .service-sheets {
+      background-color: #e8f5e9;
+      color: #2e7d32;
     }
 
     /* ======= ESTILO RESPONSIVO ======= */
@@ -430,7 +436,7 @@
         </div>
         <select class="server-select" id="serverSelect" onchange="changeVideo(this.value)"></select>
         
-        <!-- NUEVO: BOTÓN DE CAMBIO DE SERVICIO -->
+        <!-- BOTÓN DE CAMBIO DE SERVICIO (ACTUALIZADO PARA 3 OPCIONES) -->
         <div class="service-toggle">
           <span class="service-toggle-label">Servicio:</span>
           <button class="service-toggle-btn" id="serviceToggleBtn" onclick="toggleService()">Cambiar a Cloudflare</button>
@@ -444,7 +450,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
   <script>
-    /* ==================== CONFIGURACIÓN FIREBASE ==================== */
+    /* ==================== CONFIGURACIÓN ==================== */
     const firebaseConfig = {
       apiKey: "AIzaSyB6MY2y5uyum87PdUHUpY8NNh4D73Yhx4U",
       authDomain: "animes-plus-89b93.firebaseapp.com",
@@ -455,24 +461,41 @@
       measurementId: "G-DN632G7XJT"
     };
 
+    // URL base para Cloudflare Workers
+    const CLOUDFLARE_BASE_URL = "https://proyecto-cloudflare.apiprueba2025.workers.dev";
+
+    // CONFIGURACIÓN DE GOOGLE SHEETS
+    const GOOGLE_SHEETS_CONFIG = {
+      SPREADSHEET_ID: '1V4LTYiuTDZ_Y_k6GRyVmFm5-G3rVhE6x1KfIcxJfLqM',
+      HOJA_IFRAMES: 'Iframes',
+      RANGO_IFRAMES: 'A:F'
+    };
+
+    // VARIABLES DE LA SERIE ESPECÍFICA (MANTENIENDO LAS ORIGINALES)
     const nombreSerie = "Karakai no Jouzu Takagisan";
     const temporada = "Temporada 01";
     const idioma = "Sub Español";
 
-     // URL base para Cloudflare Workers
-    const CLOUDFLARE_BASE_URL = "https://proyecto-cloudflare.apiprueba2025.workers.dev";
-
+    // Inicializar Firebase
     const app = firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
     let episodios = [];
     let currentEpisode = 0;
     let servidorActivo = null;
-    let servicioActivo = 'firebase'; // 'firebase' o 'cloudflare'
+    let servicioActivo = 'firebase'; // 'firebase', 'cloudflare' o 'sheets'
 
-    /* ==================== FUNCIONES DE SERVICIO ==================== */
+    /* ==================== FUNCIONES DE SERVICIO (ACTUALIZADAS PARA 3 OPCIONES) ==================== */
     function toggleService() {
-      servicioActivo = servicioActivo === 'firebase' ? 'cloudflare' : 'firebase';
+      // Rotar entre los 3 servicios: firebase -> cloudflare -> sheets -> firebase
+      if (servicioActivo === 'firebase') {
+        servicioActivo = 'cloudflare';
+      } else if (servicioActivo === 'cloudflare') {
+        servicioActivo = 'sheets';
+      } else {
+        servicioActivo = 'firebase';
+      }
+      
       updateServiceUI();
       cargarEpisodios();
     }
@@ -485,24 +508,219 @@
         serviceToggleBtn.textContent = 'Cambiar a Cloudflare';
         serviceStatus.textContent = 'Firebase';
         serviceStatus.className = 'service-status service-active';
-      } else {
-        serviceToggleBtn.textContent = 'Cambiar a Firebase';
+      } else if (servicioActivo === 'cloudflare') {
+        serviceToggleBtn.textContent = 'Cambiar a Google Sheets';
         serviceStatus.textContent = 'Cloudflare';
         serviceStatus.className = 'service-status service-inactive';
+      } else if (servicioActivo === 'sheets') {
+        serviceToggleBtn.textContent = 'Cambiar a Firebase';
+        serviceStatus.textContent = 'Google Sheets';
+        serviceStatus.className = 'service-status service-sheets';
       }
     }
 
     async function cargarEpisodios() {
       if (servicioActivo === 'firebase') {
         await cargarEpisodiosDesdeFirebase();
-      } else {
+      } else if (servicioActivo === 'cloudflare') {
         await cargarEpisodiosDesdeCloudflare();
+      } else {
+        await cargarEpisodiosDesdeGoogleSheets();
       }
+    }
+
+    /* ==================== NUEVA FUNCIÓN: GOOGLE SHEETS ==================== */
+    async function cargarEpisodiosDesdeGoogleSheets() {
+      try {
+        console.log("Cargando desde Google Sheets...");
+        
+        // Mostrar mensaje de carga
+        mostrarMensajeCarga('Google Sheets');
+        
+        // URL para obtener datos de la hoja Iframes
+        const csvUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_CONFIG.SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(GOOGLE_SHEETS_CONFIG.HOJA_IFRAMES)}`;
+        
+        console.log("URL Sheets:", csvUrl);
+        const response = await fetch(csvUrl);
+        
+        if (!response.ok) {
+          throw new Error(`Error HTTP: ${response.status}`);
+        }
+        
+        const csvText = await response.text();
+        console.log("Datos CSV recibidos:", csvText.substring(0, 500));
+        
+        // Parsear CSV
+        const rows = parseGoogleSheetsCSV(csvText);
+        
+        if (rows.length === 0) {
+          throw new Error("No se encontraron datos en Google Sheets");
+        }
+        
+        episodios = [];
+        const servidoresDisponibles = new Set();
+        
+        // Estructura de columnas esperada:
+        // Columna A: Nombre de la serie
+        // Columna B: Temporada
+        // Columna C: Idioma
+        // Columna D: Servidor
+        // Columna E: Episodio
+        // Columna F: Iframe
+        
+        for (let i = 0; i < rows.length; i++) {
+          const row = rows[i];
+          
+          // Saltar encabezado si existe
+          if (i === 0 && (row[0]?.toLowerCase().includes('nombre') || row[0]?.toLowerCase().includes('serie'))) {
+            console.log("Encabezados encontrados:", row);
+            continue;
+          }
+          
+          const nombreSerieCSV = (row[0] || '').trim();
+          const temporadaCSV = (row[1] || '').trim();
+          const idiomaCSV = (row[2] || '').trim();
+          const servidorCSV = (row[3] || '').trim();
+          const episodioCSV = (row[4] || '').trim();
+          const iframeCSV = (row[5] || '').trim();
+          
+          // Filtrar por la serie específica definida arriba
+          if (nombreSerieCSV !== nombreSerie || temporadaCSV !== temporada) {
+            continue;
+          }
+          
+          // Verificar idioma (usar el de la hoja o el definido)
+          const idiomaAFiltrar = (idiomaCSV && idiomaCSV !== '') ? idiomaCSV : idioma;
+          if (idiomaCSV !== '' && idiomaCSV !== idioma) {
+            continue;
+          }
+          
+          if (!episodioCSV || !iframeCSV || !servidorCSV) {
+            console.warn("Fila ignorada - datos incompletos:", row);
+            continue;
+          }
+          
+          // Agregar servidor a la lista de disponibles
+          servidoresDisponibles.add(servidorCSV);
+          
+          // Buscar o crear el episodio
+          let episodio = episodios.find(e => e.name === episodioCSV);
+          if (!episodio) {
+            episodio = { name: episodioCSV, embeds: {} };
+            episodios.push(episodio);
+          }
+          
+          // Agregar el iframe para este servidor
+          episodio.embeds[servidorCSV] = iframeCSV;
+        }
+        
+        if (episodios.length === 0) {
+          throw new Error(`No se encontraron episodios para ${nombreSerie} - ${temporada} (${idioma}) en Google Sheets`);
+        }
+        
+        // Ordenar episodios
+        episodios.sort((a, b) => a.name.localeCompare(b.name, 'es', { numeric: true }));
+        
+        // Seleccionar primer servidor disponible
+        servidorActivo = Array.from(servidoresDisponibles)[0] || null;
+        
+        if (!servidorActivo) {
+          throw new Error("No se encontraron servidores disponibles");
+        }
+        
+        updateHeaderInfo();
+        renderEpisodeSelector();
+        renderServerOptions();
+        changeVideo(servidorActivo);
+        renderSidebar();
+        
+        console.log(`Cargados ${episodios.length} episodios desde Google Sheets`);
+        
+      } catch (error) {
+        console.error("Error cargando desde Google Sheets:", error);
+        mostrarErrorCarga(`Google Sheets: ${error.message}`);
+        
+        // Si Google Sheets falla, intentar con Firebase automáticamente
+        if (servicioActivo === 'sheets') {
+          servicioActivo = 'firebase';
+          updateServiceUI();
+          setTimeout(() => {
+            cargarEpisodiosDesdeFirebase();
+          }, 1000);
+        }
+      }
+    }
+
+    function parseGoogleSheetsCSV(text) {
+      const rows = [];
+      const lines = text.split('\n');
+      
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        
+        const row = [];
+        let currentCell = '';
+        let insideQuotes = false;
+        
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+          
+          if (char === '"') {
+            insideQuotes = !insideQuotes;
+          } else if (char === ',' && !insideQuotes) {
+            row.push(currentCell.trim());
+            currentCell = '';
+          } else {
+            currentCell += char;
+          }
+        }
+        
+        row.push(currentCell.trim());
+        
+        const cleanedRow = row.map(cell => {
+          return cell.replace(/^"|"$/g, '');
+        });
+        
+        rows.push(cleanedRow);
+      }
+      
+      return rows;
+    }
+
+    function mostrarMensajeCarga(servicio) {
+      const videoContainer = document.getElementById('videoContainer');
+      videoContainer.innerHTML = `
+        <div style="padding: 40px; text-align: center; background: #e9ecef; border-radius: 10px;">
+          <div style="margin-bottom: 15px;">⏳</div>
+          <h3 style="margin-top: 0; color: #003a73;">Cargando desde ${servicio}...</h3>
+          <p>${nombreSerie}</p>
+          <p>${temporada} - ${idioma}</p>
+        </div>
+      `;
+    }
+
+    function mostrarErrorCarga(mensaje) {
+      const videoContainer = document.getElementById('videoContainer');
+      videoContainer.innerHTML = `
+        <div style="padding: 40px; text-align: center; background: #fff3cd; border-radius: 10px; color: #856404;">
+          <h3 style="margin-top: 0;">⚠️ Error de carga</h3>
+          <p>${mensaje}</p>
+          <button onclick="reintentarCarga()" style="margin-top: 15px; padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            Reintentar
+          </button>
+        </div>
+      `;
+    }
+
+    function reintentarCarga() {
+      cargarEpisodios();
     }
 
     /* ==================== FIREBASE ==================== */
     async function cargarEpisodiosDesdeFirebase() {
       try {
+        mostrarMensajeCarga('Firebase');
+        
         const servidoresSnap = await db
           .collection("animes-series").doc(nombreSerie)
           .collection("Temporadas").doc(temporada)
@@ -543,12 +761,15 @@
         renderSidebar();
       } catch (error) {
         console.error("Error cargando desde Firebase:", error);
+        mostrarErrorCarga(`Firebase: ${error.message}`);
+        
         // Si Firebase falla, intentar con Cloudflare automáticamente
         if (servicioActivo === 'firebase') {
-          alert("Firebase no está disponible. Cambiando a Cloudflare...");
           servicioActivo = 'cloudflare';
           updateServiceUI();
-          await cargarEpisodiosDesdeCloudflare();
+          setTimeout(() => {
+            cargarEpisodiosDesdeCloudflare();
+          }, 1000);
         }
       }
     }
@@ -556,6 +777,8 @@
     /* ==================== CLOUDFLARE ==================== */
     async function cargarEpisodiosDesdeCloudflare() {
       try {
+        mostrarMensajeCarga('Cloudflare');
+        
         // Obtener servidores disponibles
         const servidoresResponse = await fetch(
           `${CLOUDFLARE_BASE_URL}/servidores?serie=${encodeURIComponent(nombreSerie)}&temporada=${encodeURIComponent(temporada)}&idioma=${encodeURIComponent(idioma)}`
@@ -615,12 +838,15 @@
         renderSidebar();
       } catch (error) {
         console.error("Error cargando desde Cloudflare:", error);
-        // Si Cloudflare falla, intentar con Firebase automáticamente
+        mostrarErrorCarga(`Cloudflare: ${error.message}`);
+        
+        // Si Cloudflare falla, intentar con Google Sheets automáticamente
         if (servicioActivo === 'cloudflare') {
-          alert("Cloudflare no está disponible. Cambiando a Firebase...");
-          servicioActivo = 'firebase';
+          servicioActivo = 'sheets';
           updateServiceUI();
-          await cargarEpisodiosDesdeFirebase();
+          setTimeout(() => {
+            cargarEpisodiosDesdeGoogleSheets();
+          }, 1000);
         }
       }
     }
@@ -718,96 +944,125 @@
     }
 
     function changeVideo(servidor) {
-  servidorActivo = servidor;
-  const videoContainer = document.getElementById('videoContainer');
-  const videoDetails = document.getElementById("videoDetails");
+      servidorActivo = servidor;
+      const videoContainer = document.getElementById('videoContainer');
+      const videoDetails = document.getElementById("videoDetails");
 
-  // Limpiar contenido anterior
-  videoContainer.innerHTML = '';
+      // Limpiar contenido anterior
+      videoContainer.innerHTML = '';
 
-  const embed = episodios[currentEpisode].embeds[servidor];
+      const embed = episodios[currentEpisode].embeds[servidor];
 
-  // Si el episodio actual no está disponible en el servidor
-  if (!embed) {
-    videoContainer.innerHTML = `
-      <div style="padding: 20px; background-color: #ffeeee; color: #a94442; border-radius: 10px; text-align: center;">
-        <p style="font-weight: bold;">Este episodio (<strong>${episodios[currentEpisode].name}</strong>) no está disponible en el servidor: <u>${servidor}</u> por varias razones (Copyright o no se pudo subir al Servidor).</p>
-        <button onclick="irAEpisodioDisponible('${servidor.replace(/'/g, "\\'")}')" style="margin-top:10px; padding: 10px 20px; background-color: #003a73; color: white; border: none; border-radius: 8px; cursor: pointer;">
-          Ir a los episodios disponibles
-        </button>
-      </div>
-    `;
-    videoDetails.textContent = `${nombreSerie} | ${temporada} | ${episodios[currentEpisode].name} | ${servidor} (No disponible)`;
-    renderServerOptions?.();
-    renderSidebar?.();
-    return;
-  }
+      // Si el episodio actual no está disponible en el servidor
+      if (!embed) {
+        videoContainer.innerHTML = `
+          <div style="padding: 20px; background-color: #ffeeee; color: #a94442; border-radius: 10px; text-align: center;">
+            <p style="font-weight: bold;">Este episodio (<strong>${episodios[currentEpisode].name}</strong>) no está disponible en el servidor: <u>${servidor}</u> por varias razones (Copyright o no se pudo subir al Servidor).</p>
+            <button onclick="irAEpisodioDisponible('${servidor.replace(/'/g, "\\'")}')" style="margin-top:10px; padding: 10px 20px; background-color: #003a73; color: white; border: none; border-radius: 8px; cursor: pointer;">
+              Ir a los episodios disponibles
+            </button>
+          </div>
+        `;
+        videoDetails.textContent = `${nombreSerie} | ${temporada} | ${episodios[currentEpisode].name} | ${servidor} (No disponible)`;
+        renderServerOptions?.();
+        renderSidebar?.();
+        return;
+      }
 
-  if (servidor === 'abyss') {
-    // Crear un iframe directamente sin tocar su contenido
-    const iframe = document.getElementById('abyssIframe') || document.createElement('iframe');
-    iframe.id = 'abyssIframe';
-    iframe.style.display = 'block';
-    iframe.style.width = '100%';
-    iframe.style.minHeight = '440px';
-    iframe.style.border = 'none';
-    iframe.setAttribute('allowfullscreen', '');
-    iframe.setAttribute('loading', 'lazy');
+      if (servidor === 'abyss') {
+        // Crear un iframe directamente sin tocar su contenido
+        const iframe = document.getElementById('abyssIframe') || document.createElement('iframe');
+        iframe.id = 'abyssIframe';
+        iframe.style.display = 'block';
+        iframe.style.width = '100%';
+        iframe.style.minHeight = '440px';
+        iframe.style.border = 'none';
+        iframe.setAttribute('allowfullscreen', '');
+        iframe.setAttribute('loading', 'lazy');
 
-    // Insertar sin usar innerHTML ni DOMParser
-    iframe.srcdoc = episodios[currentEpisode].embeds[servidor];
-    videoContainer.appendChild(iframe);
-  } 
-  else if (servidor.toLowerCase().includes('jumpshare')) {
-    // ESPECIAL PARA JUMPSHARE - Crear contenedor con relación de aspecto
-    const container = document.createElement('div');
-    container.style.position = 'relative';
-    container.style.width = '100%';
-    container.style.paddingBottom = '56.25%'; // Relación 16:9
-    container.style.height = '0';
-    container.style.overflow = 'hidden';
-    container.style.borderRadius = '10px';
-    container.style.backgroundColor = '#000';
-    
-    // Verificar y modificar el embed de Jumpshare
-    let modifiedEmbed = embed;
-    
-    // Si ya tiene estilos inline, reemplazarlos
-    if (modifiedEmbed.includes('style="')) {
-      modifiedEmbed = modifiedEmbed.replace(
-        /style="[^"]*"/,
-        'style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"'
-      );
-    } else {
-      // Si no tiene estilos, añadirlos
-      modifiedEmbed = modifiedEmbed.replace(
-        '<iframe',
-        '<iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"'
-      );
-    }
-    
-    container.innerHTML = modifiedEmbed;
-    videoContainer.appendChild(container);
-  }
-  else if (servidor === 'Tokio Video') {
+        // Insertar sin usar innerHTML ni DOMParser
+        iframe.srcdoc = episodios[currentEpisode].embeds[servidor];
+        videoContainer.appendChild(iframe);
+      } 
+      else if (servidor.toLowerCase().includes('jumpshare')) {
+        // ESPECIAL PARA JUMPSHARE - Crear contenedor con relación de aspecto
+        const container = document.createElement('div');
+        container.style.position = 'relative';
+        container.style.width = '100%';
+        container.style.paddingBottom = '56.25%'; // Relación 16:9
+        container.style.height = '0';
+        container.style.overflow = 'hidden';
+        container.style.borderRadius = '10px';
+        container.style.backgroundColor = '#000';
+        
+        // Verificar y modificar el embed de Jumpshare
+        let modifiedEmbed = embed;
+        
+        // Si ya tiene estilos inline, reemplazarlos
+        if (modifiedEmbed.includes('style="')) {
+          modifiedEmbed = modifiedEmbed.replace(
+            /style="[^"]*"/,
+            'style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"'
+          );
+        } else {
+          // Si no tiene estilos, añadirlos
+          modifiedEmbed = modifiedEmbed.replace(
+            '<iframe',
+            '<iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"'
+          );
+        }
+        
+        container.innerHTML = modifiedEmbed;
+        videoContainer.appendChild(container);
+      }
+      else if (servidor.toLowerCase().includes('odysee')) {
+        // ODYSEE - Contenedor adaptativo que se achica para adaptarse
+        const container = document.createElement('div');
+        container.style.position = 'relative';
+        container.style.width = '100%';
+        container.style.paddingBottom = '56.25%'; // Relación 16:9 adaptativa
+        container.style.height = '0';
+        container.style.overflow = 'hidden';
+        container.style.borderRadius = '10px';
+        container.style.backgroundColor = '#000';
+        
+        let modifiedEmbed = embed;
+        
+        // Asegurar que Odysee tenga estilos adaptativos
+        if (modifiedEmbed.includes('style="')) {
+          modifiedEmbed = modifiedEmbed.replace(
+            /style="[^"]*"/,
+            'style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"'
+          );
+        } else {
+          modifiedEmbed = modifiedEmbed.replace(
+            '<iframe',
+            '<iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"'
+          );
+        }
+        
+        container.innerHTML = modifiedEmbed;
+        videoContainer.appendChild(container);
+      }
+      else if (servidor === 'Tokio Video') {
     // Tokio Video - eliminar max-width
-    let embed = episodios[currentEpisode].embeds[servidor];
     let modifiedEmbed = embed.replace(/style="[^"]*max-width:[^";]*;?[^"]*"/gi, '');
     videoContainer.innerHTML = modifiedEmbed;
   }
-  else {
-    // Otros servidores
-    videoContainer.innerHTML = episodios[currentEpisode].embeds[servidor];
-  }
+      else {
+        // PARA TODOS LOS DEMÁS SERVIDORES (Rumble, etc.)
+        // Usar el embed original sin modificaciones - tamaño fijo
+        videoContainer.innerHTML = embed;
+      }
 
-  // Actualizar detalles
-  if (videoDetails) {
-    videoDetails.textContent = `${nombreSerie} | ${temporada} | ${episodios[currentEpisode].name} | ${servidor}`;
-  }
+      // Actualizar detalles
+      if (videoDetails) {
+        videoDetails.textContent = `${nombreSerie} | ${temporada} | ${episodios[currentEpisode].name} | ${servidor}`;
+      }
 
-  renderServerOptions?.();
-  renderSidebar?.();
-}
+      renderServerOptions?.();
+      renderSidebar?.();
+    }
 
     function irAEpisodioDisponible(servidor) {
       let encontrado = false;
@@ -835,17 +1090,7 @@
       return "https://excelpic.s3.us-west-2.amazonaws.com/QESGQPMOPKR1/blob-NCnd1741995020243.webp";
     }
 
-//function getCustomThumbnailURL(servidor) { (Opcional si se quiere que cada servidor tenga su miniatura)
-      //const thumbnails = {
-        //"Abyss": "https://m.media-amazon.com/images/M/MV5BNjliYzA2OWQtNTI3Mi00OTc4LWJlZDktNzhmZTc5YjhiZDEyXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
-        //"Bitchute": "https://m.media-amazon.com/images/M/MV5BNjliYzA2OWQtNTI3Mi00OTc4LWJlZDktNzhmZTc5YjhiZDEyXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
-        //"Dailymotion": "https://m.media-amazon.com/images/M/MV5BNjliYzA2OWQtNTI3Mi00OTc4LWJlZDktNzhmZTc5YjhiZDEyXkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
-        
-      //};
-      //return thumbnails[servidor] || "https://via.placeholder.com/120x70?text=Preview";
-    //}
-
-        // Inicializar
+    // Inicializar
     updateServiceUI();
     cargarEpisodios();
   </script>
