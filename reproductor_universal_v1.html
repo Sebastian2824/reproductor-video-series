@@ -187,51 +187,133 @@
       background: #5a6268;
     }
 
-    /* ======= ESTILOS PARA BOTÓN DE SERVICIO ======= */
-    .service-toggle {
-      display: flex;
-      align-items: center;
-      gap: 8px;
+    /* ======= NUEVO: DROPDOWN PARA CAMBIAR SERVICIO ======= */
+    .service-dropdown {
+      position: relative;
+      display: inline-block;
       margin-top: 10px;
+      width: 100%;
     }
 
-    .service-toggle-label {
-      font-size: 14px;
-      font-weight: bold;
-      color: #003a73;
-    }
-
-    .service-toggle-btn {
+    .service-dropdown-toggle {
       background: #003a73;
       color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-weight: bold;
+      font-weight: 500;
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: 1px solid #003a73;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      transition: all 0.25s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
       cursor: pointer;
-      transition: all 0.3s;
-      font-size: 12px;
+      font-size: 14px;
     }
 
-    .service-toggle-btn:hover {
+    .service-dropdown-toggle:hover {
       background: #007bb5;
+      border-color: #007bb5;
     }
 
-    .service-status {
+    .service-dropdown-toggle .fa-chevron-down {
+      font-size: 0.7rem;
+      margin-left: 8px;
+      transition: transform 0.2s ease;
+    }
+
+    .service-dropdown.active .service-dropdown-toggle .fa-chevron-down {
+      transform: rotate(180deg);
+    }
+
+    .service-dropdown-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      margin-top: 5px;
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+      z-index: 1200;
+      overflow: hidden;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-10px);
+      transition: all 0.2s ease;
+    }
+
+    .service-dropdown.active .service-dropdown-menu {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .service-dropdown-item {
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #2d3748;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 13px;
+    }
+
+    .service-dropdown-item:last-child {
+      border-bottom: none;
+    }
+
+    .service-dropdown-item:hover {
+      background: #f1f5f9;
+      color: #0072ff;
+    }
+
+    .service-dropdown-item.active {
+      background: #e8f4ff;
+      color: #0072ff;
+      font-weight: 600;
+    }
+
+    .service-dropdown-item.active .service-check {
+      opacity: 1;
+    }
+
+    .service-dropdown-item .service-icon {
+      font-size: 0.9rem;
+      width: 18px;
+      text-align: center;
+      margin-right: 8px;
+    }
+
+    .service-dropdown-item .service-check {
+      color: #28a745;
+      font-size: 0.8rem;
+      opacity: 0;
+    }
+
+    .service-status-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
       font-size: 12px;
-      padding: 4px 8px;
+      padding: 3px 8px;
       border-radius: 10px;
       font-weight: bold;
+      margin-left: 5px;
     }
 
-    .service-firebase {
-      background-color: #e3f2fd;
-      color: #1565c0;
+    .service-active {
+      background-color: #e6f7e6;
+      color: #2e7d32;
     }
 
     .service-cloudflare {
-      background-color: #f3e5f5;
-      color: #7b1fa2;
+      background-color: #fff3e0;
+      color: #e65100;
     }
 
     .service-sheets {
@@ -359,8 +441,7 @@
         padding: 10px;
       }
 
-      .service-toggle {
-        justify-content: center;
+      .service-dropdown {
         margin-top: 8px;
       }
     }
@@ -459,17 +540,44 @@
         </div>
         <select class="server-select" id="serverSelect" onchange="changeVideo(this.value)"></select>
         
-        <!-- BOTÓN DE CAMBIO DE SERVICIO -->
-        <div class="service-toggle">
-          <span class="service-toggle-label">Servicio:</span>
-          <button class="service-toggle-btn" id="serviceToggleBtn" onclick="toggleService()">Cambiar a Cloudflare</button>
-          <span class="service-status service-firebase" id="serviceStatus">Firebase</span>
+        <!-- NUEVO: DROPDOWN PARA CAMBIAR SERVICIO -->
+        <div class="service-dropdown" id="serviceDropdown">
+          <button class="service-dropdown-toggle" id="serviceToggleBtn">
+            <span id="serviceToggleText">Cambiar servicio</span>
+            <i class="fas fa-chevron-down"></i>
+          </button>
+          <div class="service-dropdown-menu" id="serviceMenu">
+            <div class="service-dropdown-item" data-service="firebase">
+              <div>
+                <i class="fas fa-database service-icon"></i>
+                <span>Firebase</span>
+              </div>
+              <i class="fas fa-check service-check"></i>
+            </div>
+            <div class="service-dropdown-item" data-service="cloudflare">
+              <div>
+                <i class="fas fa-cloud service-icon"></i>
+                <span>Cloudflare</span>
+              </div>
+              <i class="fas fa-check service-check"></i>
+            </div>
+            <div class="service-dropdown-item" data-service="sheets">
+              <div>
+                <i class="fas fa-table service-icon"></i>
+                <span>Google Sheets</span>
+              </div>
+              <i class="fas fa-check service-check"></i>
+            </div>
+          </div>
         </div>
       </div>
       <div class="episode-list" id="sidebarPlaylist"></div>
     </div>
   </div>
 
+  <!-- Font Awesome para iconos -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
   <script>
@@ -554,37 +662,62 @@
       document.getElementById("episodeCount").textContent = "0 episodios";
     }
 
-    /* ==================== FUNCIONES DE SERVICIO ==================== */
-    function toggleService() {
-      if (servicioActivo === 'firebase') {
-        servicioActivo = 'cloudflare';
-      } else if (servicioActivo === 'cloudflare') {
-        servicioActivo = 'sheets';
-      } else {
-        servicioActivo = 'firebase';
+    /* ==================== NUEVAS FUNCIONES PARA DROPDOWN DE SERVICIO ==================== */
+    function toggleDropdown() {
+      const dropdown = document.getElementById('serviceDropdown');
+      dropdown.classList.toggle('active');
+    }
+
+    function cerrarDropdown() {
+      const dropdown = document.getElementById('serviceDropdown');
+      dropdown.classList.remove('active');
+    }
+
+    function cambiarServicio(nuevoServicio) {
+      if (servicioActivo === nuevoServicio) {
+        cerrarDropdown();
+        return;
       }
+      
+      servicioActivo = nuevoServicio;
       updateServiceUI();
+      
+      // Recargar datos con el nuevo servicio
+      currentEpisode = 0;
       cargarEpisodios();
+      
+      cerrarDropdown();
     }
 
     function updateServiceUI() {
-      const serviceToggleBtn = document.getElementById('serviceToggleBtn');
-      const serviceStatus = document.getElementById('serviceStatus');
+      const toggleText = document.getElementById('serviceToggleText');
       
-      // Actualizar texto del botón
+      let servicioNombre = '';
+      let icono = '';
+      
       if (servicioActivo === 'firebase') {
-        serviceToggleBtn.textContent = 'Cambiar a Cloudflare';
-        serviceStatus.textContent = 'Firebase';
-        serviceStatus.className = 'service-status service-firebase';
+        servicioNombre = 'Firebase';
+        icono = '<i class="fas fa-database"></i>';
+        toggleText.textContent = 'Cambiar servicio (Firebase)';
       } else if (servicioActivo === 'cloudflare') {
-        serviceToggleBtn.textContent = 'Cambiar a Google Sheets';
-        serviceStatus.textContent = 'Cloudflare';
-        serviceStatus.className = 'service-status service-cloudflare';
-      } else {
-        serviceToggleBtn.textContent = 'Cambiar a Firebase';
-        serviceStatus.textContent = 'Google Sheets';
-        serviceStatus.className = 'service-status service-sheets';
+        servicioNombre = 'Cloudflare';
+        icono = '<i class="fas fa-cloud"></i>';
+        toggleText.textContent = 'Cambiar servicio (Cloudflare)';
+      } else if (servicioActivo === 'sheets') {
+        servicioNombre = 'Google Sheets';
+        icono = '<i class="fas fa-table"></i>';
+        toggleText.textContent = 'Cambiar servicio (Google Sheets)';
       }
+      
+      // Actualizar opciones activas en el dropdown
+      document.querySelectorAll('.service-dropdown-item').forEach(item => {
+        const itemService = item.getAttribute('data-service');
+        if (itemService === servicioActivo) {
+          item.classList.add('active');
+        } else {
+          item.classList.remove('active');
+        }
+      });
     }
 
     async function cargarEpisodios() {
@@ -1115,6 +1248,25 @@
 
     /* ==================== INICIALIZACIÓN ==================== */
     document.addEventListener('DOMContentLoaded', function() {
+      // Event Listeners para el dropdown
+      document.getElementById("serviceToggleBtn").addEventListener("click", toggleDropdown);
+      
+      // Event listeners para las opciones del dropdown
+      document.querySelectorAll('.service-dropdown-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const servicio = item.getAttribute('data-service');
+          cambiarServicio(servicio);
+        });
+      });
+      
+      // Cerrar dropdown al hacer clic fuera
+      document.addEventListener('click', (e) => {
+        const dropdown = document.getElementById('serviceDropdown');
+        if (dropdown && !dropdown.contains(e.target)) {
+          cerrarDropdown();
+        }
+      });
+      
       updateServiceUI();
       
       if (obtenerParametrosURL()) {

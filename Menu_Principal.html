@@ -98,6 +98,7 @@ body {
   gap: 6px;
   font-size: 0.8rem;
   white-space: nowrap;
+  cursor: pointer;
 }
 
 .btn-service:hover {
@@ -210,6 +211,112 @@ body {
   opacity: 0.95;
 }
 
+/* =================== DROPDOWN PARA CAMBIAR SERVICIO =================== */
+.service-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.service-dropdown-toggle {
+  background: #28a745;
+  color: #ffffff;
+  font-weight: 500;
+  padding: 6px 16px 6px 12px;
+  border-radius: 20px;
+  border: none;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.25s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.service-dropdown-toggle:hover {
+  background: #218838;
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.service-dropdown-toggle .fa-chevron-down {
+  font-size: 0.7rem;
+  margin-left: 2px;
+  transition: transform 0.2s ease;
+}
+
+.service-dropdown.active .service-dropdown-toggle .fa-chevron-down {
+  transform: rotate(180deg);
+}
+
+.service-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 5px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  min-width: 180px;
+  z-index: 1200;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.2s ease;
+}
+
+.service-dropdown.active .service-dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.service-dropdown-item {
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #2d3748;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.service-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.service-dropdown-item:hover {
+  background: #f1f5f9;
+  color: #0072ff;
+}
+
+.service-dropdown-item.active {
+  background: #e8f4ff;
+  color: #0072ff;
+  font-weight: 600;
+}
+
+.service-dropdown-item.active .service-check {
+  opacity: 1;
+}
+
+.service-dropdown-item .service-icon {
+  font-size: 0.9rem;
+  width: 18px;
+  text-align: center;
+}
+
+.service-dropdown-item .service-check {
+  margin-left: auto;
+  color: #28a745;
+  font-size: 0.8rem;
+  opacity: 0;
+}
+
 /* =================== CONTENIDO PRINCIPAL =================== */
 .main-content {
   margin-top: 100px;
@@ -299,7 +406,7 @@ body {
     font-size: 1rem;
   }
   
-  .btn-solid-sm, .btn-service {
+  .btn-solid-sm, .service-dropdown-toggle {
     padding: 5px 10px;
     font-size: 0.75rem;
   }
@@ -354,7 +461,7 @@ body {
     font-size: 0.95rem;
   }
   
-  .btn-solid-sm, .btn-service {
+  .btn-solid-sm, .service-dropdown-toggle {
     padding: 4px 8px;
     font-size: 0.7rem;
   }
@@ -405,6 +512,12 @@ body {
     flex: 1;
   }
   
+  .service-dropdown-menu {
+    right: auto;
+    left: 0;
+    min-width: 160px;
+  }
+  
   .main-content {
     margin-top: 140px;
   }
@@ -431,9 +544,30 @@ body {
 
       <!-- DERECHA: Botones compactos -->
       <div class="right">
-        <button id="toggleService" class="btn-service">
-          <i class="fas fa-exchange-alt"></i> Cambiar servicio
-        </button>
+        <!-- Dropdown para cambiar servicio -->
+        <div class="service-dropdown" id="serviceDropdown">
+          <button class="service-dropdown-toggle" id="serviceToggleBtn">
+            <i class="fas fa-exchange-alt"></i> Cambiar servicio <i class="fas fa-chevron-down"></i>
+          </button>
+          <div class="service-dropdown-menu" id="serviceMenu">
+            <div class="service-dropdown-item" data-service="firebase">
+              <i class="fas fa-database service-icon"></i>
+              <span>Firebase</span>
+              <i class="fas fa-check service-check"></i>
+            </div>
+            <div class="service-dropdown-item" data-service="cloudflare">
+              <i class="fas fa-cloud service-icon"></i>
+              <span>Cloudflare</span>
+              <i class="fas fa-check service-check"></i>
+            </div>
+            <div class="service-dropdown-item" data-service="sheets">
+              <i class="fas fa-table service-icon"></i>
+              <span>Google Sheets</span>
+              <i class="fas fa-check service-check"></i>
+            </div>
+          </div>
+        </div>
+        
         <a href="index.html" class="btn-solid-sm">
           <i class="fas fa-sign-out-alt"></i> Salir
         </a>
@@ -503,39 +637,44 @@ body {
   const db = firebase.firestore();
 
   // Función para cambiar entre servicios
-  function toggleServicio() {
-    if (servicioActivo === 'firebase') {
-      servicioActivo = 'cloudflare';
-      updateServiceUI();
-    } else if (servicioActivo === 'cloudflare') {
-      servicioActivo = 'sheets';
-      updateServiceUI();
-    } else {
-      servicioActivo = 'firebase';
-      updateServiceUI();
+  function cambiarServicio(nuevoServicio) {
+    if (servicioActivo === nuevoServicio) {
+      cerrarDropdown();
+      return;
     }
+    
+    servicioActivo = nuevoServicio;
+    updateServiceUI();
     
     // Recargar datos con el nuevo servicio
     currentPage = 1;
     cargarSeries();
+    
+    cerrarDropdown();
   }
 
   // Función para actualizar la UI según el servicio activo
   function updateServiceUI() {
-    const toggleBtn = document.getElementById('toggleService');
     const indicator = document.getElementById('serviceIndicator');
     
-    toggleBtn.classList.remove('cloudflare', 'sheets');
-    
+    // Actualizar indicador
     if (servicioActivo === 'firebase') {
       indicator.innerHTML = '<i class="fas fa-database"></i> Firebase';
     } else if (servicioActivo === 'cloudflare') {
-      toggleBtn.classList.add('cloudflare');
       indicator.innerHTML = '<i class="fas fa-cloud"></i> Cloudflare';
     } else if (servicioActivo === 'sheets') {
-      toggleBtn.classList.add('sheets');
       indicator.innerHTML = '<i class="fas fa-table"></i> Google Sheets';
     }
+    
+    // Actualizar opciones activas en el dropdown
+    document.querySelectorAll('.service-dropdown-item').forEach(item => {
+      const itemService = item.getAttribute('data-service');
+      if (itemService === servicioActivo) {
+        item.classList.add('active');
+      } else {
+        item.classList.remove('active');
+      }
+    });
   }
 
   // Función para cargar series según el servicio activo
@@ -765,6 +904,17 @@ body {
     // alert(message); // Comentado para no molestar
   }
 
+  // Funciones para manejar el dropdown
+  function toggleDropdown() {
+    const dropdown = document.getElementById('serviceDropdown');
+    dropdown.classList.toggle('active');
+  }
+
+  function cerrarDropdown() {
+    const dropdown = document.getElementById('serviceDropdown');
+    dropdown.classList.remove('active');
+  }
+
   function poblarMenuSeries() {
     const select = document.getElementById("menuSeries");
     select.innerHTML = '<option value="">Todas las series</option>';
@@ -893,7 +1043,24 @@ body {
   }
 
   // Event Listeners
-  document.getElementById("toggleService").addEventListener("click", toggleServicio);
+  document.getElementById("serviceToggleBtn").addEventListener("click", toggleDropdown);
+  
+  // Event listeners para las opciones del dropdown
+  document.querySelectorAll('.service-dropdown-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const servicio = item.getAttribute('data-service');
+      cambiarServicio(servicio);
+    });
+  });
+  
+  // Cerrar dropdown al hacer clic fuera
+  document.addEventListener('click', (e) => {
+    const dropdown = document.getElementById('serviceDropdown');
+    if (!dropdown.contains(e.target)) {
+      cerrarDropdown();
+    }
+  });
+  
   document.getElementById("buscador").addEventListener("input", () => {
     currentPage = 1;
     renderizarSeries();
