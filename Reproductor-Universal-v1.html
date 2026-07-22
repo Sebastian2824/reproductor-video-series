@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <title>Reproductor Universal</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  
+
   <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Google Fonts (Inter) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
 
   <style>
     /* ============================================================
@@ -23,13 +23,13 @@
     body {
       margin: 0;
       padding: 20px;
-      font-family: 'Poppins', sans-serif;
+      font-family: 'Inter', 'Segoe UI', 'Roboto', sans-serif;
       background: url(https://static.wixstatic.com/media/8a7da0_da693a5c2b2d42bbb084707197421b0a~mv2.png) center/cover no-repeat fixed;
       min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      color: #0a2a44;
+      color: #1a1a2e;
       position: relative;
     }
 
@@ -47,7 +47,7 @@
     }
 
     /* ============================================================
-       CONTENEDOR PRINCIPAL — glassmorphism
+       CONTENEDOR PRINCIPAL — glassmorphism azulado
     ============================================================ */
     .container {
       position: relative;
@@ -55,12 +55,12 @@
       display: flex;
       width: 94%;
       max-width: 1440px;
-      background: rgba(255, 255, 255, 0.60);
+      background: rgba(255, 255, 255, 0.70);
       backdrop-filter: blur(16px) saturate(180%);
       -webkit-backdrop-filter: blur(16px) saturate(180%);
       border-radius: 32px;
-      box-shadow: 0 20px 40px -12px rgba(0, 20, 40, 0.30), inset 0 1px 0 rgba(255,255,255,0.7);
-      border: 1px solid rgba(255,255,255,0.4);
+      box-shadow: 0 20px 40px -12px rgba(13, 71, 161, 0.20), inset 0 1px 0 rgba(255,255,255,0.7);
+      border: 1px solid rgba(255,255,255,0.5);
       overflow: hidden;
       transition: all 0.3s ease;
     }
@@ -78,9 +78,9 @@
 
     /* Botón volver */
     .back-button {
-      background: rgba(13, 71, 161, 0.12);
+      background: rgba(13, 71, 161, 0.08);
       color: #0d47a1;
-      border: 1px solid rgba(13, 71, 161, 0.20);
+      border: 1px solid rgba(13, 71, 161, 0.15);
       padding: 10px 20px;
       border-radius: 40px;
       font-weight: 600;
@@ -91,6 +91,7 @@
       align-items: center;
       gap: 8px;
       width: fit-content;
+      font-family: inherit;
       backdrop-filter: blur(4px);
     }
 
@@ -99,7 +100,7 @@
       color: #fff;
       border-color: #0d47a1;
       transform: scale(1.03);
-      box-shadow: 0 6px 16px rgba(13, 71, 161, 0.25);
+      box-shadow: 0 6px 16px rgba(13, 71, 161, 0.2);
     }
 
     /* Barra de controles */
@@ -114,20 +115,21 @@
     .episode-selector {
       padding: 10px 16px;
       border-radius: 40px;
-      border: 1px solid rgba(0,0,0,0.08);
-      background: rgba(255, 255, 255, 0.6);
+      border: 1px solid rgba(0,0,0,0.06);
+      background: rgba(255, 255, 255, 0.8);
       backdrop-filter: blur(4px);
       font-weight: 600;
-      color: #0a2a44;
-      font-family: 'Poppins', sans-serif;
+      color: #1a1a2e;
+      font-family: inherit;
       min-width: 160px;
       transition: all 0.25s ease;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
     }
 
     .episode-selector:focus {
       outline: none;
       border-color: #0d47a1;
-      box-shadow: 0 0 0 4px rgba(13, 71, 161, 0.10);
+      box-shadow: 0 0 0 4px rgba(13, 71, 161, 0.08);
     }
 
     .controls-bar > div {
@@ -150,11 +152,12 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      font-family: inherit;
     }
 
     .control-btn:hover {
       transform: scale(1.04);
-      box-shadow: 0 6px 20px rgba(13, 71, 161, 0.35);
+      box-shadow: 0 6px 20px rgba(13, 71, 161, 0.3);
       background: linear-gradient(135deg, #0a2a44, #0d47a1);
     }
 
@@ -164,7 +167,7 @@
       aspect-ratio: 16 / 9;
       border-radius: 20px;
       overflow: hidden;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
       background: #000;
       position: relative;
     }
@@ -182,22 +185,22 @@
       align-items: center;
       font-weight: 600;
       font-size: 0.95rem;
-      color: #0a2a44;
-      padding: 8px 4px;
-      background: rgba(255,255,255,0.3);
+      color: #1a1a2e;
+      padding: 8px 16px;
+      background: rgba(255,255,255,0.6);
       backdrop-filter: blur(4px);
       border-radius: 40px;
-      padding: 8px 16px;
-      border: 1px solid rgba(255,255,255,0.3);
+      border: 1px solid rgba(255,255,255,0.4);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
     }
 
     /* ============================================================
-       SECCIÓN RECOMENDACIONES (dentro del reproductor en desktop)
+       SECCIÓN RECOMENDACIONES
     ============================================================ */
     .recomendaciones-section {
       margin-top: 8px;
       padding-top: 16px;
-      border-top: 2px solid rgba(13, 71, 161, 0.10);
+      border-top: 2px solid rgba(13, 71, 161, 0.08);
     }
 
     .recomendaciones-header {
@@ -233,9 +236,10 @@
       font-weight: 600;
       padding: 4px 14px 4px 10px;
       border-radius: 40px;
-      background: rgba(13, 71, 161, 0.10);
+      background: rgba(13, 71, 161, 0.08);
       color: #0d47a1;
-      border: 1px solid rgba(13, 71, 161, 0.15);
+      border: 1px solid rgba(13, 71, 161, 0.12);
+      font-family: inherit;
     }
 
     .service-status-indicator i {
@@ -270,20 +274,46 @@
     .recomendacion-card {
       flex: 0 0 auto;
       width: 200px;
-      background: rgba(255, 255, 255, 0.6);
+      background: rgba(255, 255, 255, 0.7);
       backdrop-filter: blur(8px);
-      border-radius: 20px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+      border-radius: 18px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
       overflow: hidden;
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      border: 1px solid rgba(255,255,255,0.5);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid rgba(255,255,255,0.6);
       cursor: pointer;
+      position: relative;
+    }
+
+    .recomendacion-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, #0d47a1, #42a5f5, #0d47a1);
+      background-size: 200% 100%;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      z-index: 2;
+    }
+
+    .recomendacion-card:hover::before {
+      opacity: 1;
+      animation: cardBorderMove 2s ease infinite;
+    }
+
+    @keyframes cardBorderMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
 
     .recomendacion-card:hover {
       transform: translateY(-8px);
-      box-shadow: 0 16px 32px rgba(13, 71, 161, 0.15);
-      border-color: #0288d1;
+      box-shadow: 0 16px 32px rgba(13, 71, 161, 0.12);
+      border-color: rgba(13, 71, 161, 0.15);
     }
 
     .recomendacion-img {
@@ -300,7 +330,7 @@
 
     .recomendacion-info h4 {
       margin: 0 0 6px 0;
-      color: #0a2a44;
+      color: #1a1a2e;
       font-size: 0.95rem;
       font-weight: 700;
       white-space: nowrap;
@@ -310,10 +340,10 @@
 
     .recomendacion-info p {
       margin: 0 0 10px 0;
-      color: #1e3a5f;
+      color: #0d47a1;
       font-size: 0.8rem;
-      font-weight: 500;
-      background: rgba(255,255,255,0.3);
+      font-weight: 600;
+      background: rgba(255,255,255,0.5);
       padding: 2px 12px;
       border-radius: 20px;
       display: inline-block;
@@ -333,6 +363,7 @@
       cursor: pointer;
       width: 100%;
       box-shadow: 0 4px 12px rgba(2, 136, 209, 0.2);
+      font-family: inherit;
     }
 
     .btn-recomendacion:hover {
@@ -353,7 +384,7 @@
     ============================================================ */
     .sidebar {
       flex: 2;
-      background: rgba(255, 255, 255, 0.40);
+      background: rgba(255, 255, 255, 0.45);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       padding: 20px 18px;
@@ -367,12 +398,12 @@
     .sidebar-header {
       margin-bottom: 16px;
       padding-bottom: 12px;
-      border-bottom: 2px solid rgba(13, 71, 161, 0.10);
+      border-bottom: 2px solid rgba(13, 71, 161, 0.08);
     }
 
     .sidebar-header h2 {
       margin: 0 0 4px 0;
-      color: #0a2a44;
+      color: #1a1a2e;
       font-size: 1.2rem;
       font-weight: 700;
     }
@@ -391,12 +422,12 @@
 
     #episodeCount {
       display: inline-block;
-      background: rgba(13, 71, 161, 0.08);
+      background: rgba(13, 71, 161, 0.06);
       padding: 2px 14px;
       border-radius: 40px;
       font-weight: 600;
       font-size: 0.8rem;
-      border: 1px solid rgba(13, 71, 161, 0.10);
+      border: 1px solid rgba(13, 71, 161, 0.08);
     }
 
     .server-select {
@@ -404,11 +435,11 @@
       padding: 10px 14px;
       border-radius: 40px;
       border: 1px solid rgba(0,0,0,0.06);
-      background: rgba(255, 255, 255, 0.6);
+      background: rgba(255, 255, 255, 0.7);
       backdrop-filter: blur(4px);
       font-weight: 600;
-      color: #0a2a44;
-      font-family: 'Poppins', sans-serif;
+      color: #1a1a2e;
+      font-family: inherit;
       margin-bottom: 12px;
       transition: all 0.25s ease;
     }
@@ -428,12 +459,12 @@
     }
 
     .service-dropdown-toggle {
-      background: rgba(13, 71, 161, 0.08);
-      color: #0a2a44;
+      background: rgba(13, 71, 161, 0.06);
+      color: #1a1a2e;
       font-weight: 600;
       padding: 10px 16px;
       border-radius: 40px;
-      border: 1px solid rgba(13, 71, 161, 0.10);
+      border: 1px solid rgba(13, 71, 161, 0.08);
       box-shadow: 0 2px 4px rgba(0,0,0,0.02);
       transition: all 0.25s ease;
       display: inline-flex;
@@ -443,10 +474,11 @@
       cursor: pointer;
       font-size: 0.85rem;
       backdrop-filter: blur(4px);
+      font-family: inherit;
     }
 
     .service-dropdown-toggle:hover {
-      background: rgba(13, 71, 161, 0.12);
+      background: rgba(13, 71, 161, 0.10);
       border-color: #0d47a1;
     }
 
@@ -468,7 +500,7 @@
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(16px);
       border-radius: 16px;
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
       z-index: 1200;
       overflow: hidden;
       opacity: 0;
@@ -489,7 +521,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      color: #0a2a44;
+      color: #1a1a2e;
       cursor: pointer;
       transition: all 0.2s ease;
       font-size: 0.85rem;
@@ -502,12 +534,12 @@
     }
 
     .service-dropdown-item:hover {
-      background: rgba(13, 71, 161, 0.05);
+      background: rgba(13, 71, 161, 0.04);
       color: #0d47a1;
     }
 
     .service-dropdown-item.active {
-      background: rgba(13, 71, 161, 0.08);
+      background: rgba(13, 71, 161, 0.06);
       color: #0d47a1;
       font-weight: 600;
     }
@@ -553,7 +585,7 @@
     }
 
     .episode-item {
-      background: rgba(255, 255, 255, 0.5);
+      background: rgba(255, 255, 255, 0.6);
       backdrop-filter: blur(4px);
       border-radius: 16px;
       display: flex;
@@ -563,18 +595,39 @@
       transition: all 0.25s ease;
       border: 2px solid transparent;
       box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+      position: relative;
+    }
+
+    .episode-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, #0d47a1, #42a5f5);
+      background-size: 200% 100%;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      border-radius: 16px 16px 0 0;
+    }
+
+    .episode-item:hover::before,
+    .episode-item.active::before {
+      opacity: 1;
+      animation: cardBorderMove 2s ease infinite;
     }
 
     .episode-item:hover {
       transform: scale(1.02);
-      background: rgba(255, 255, 255, 0.7);
-      border-color: rgba(13, 71, 161, 0.15);
+      background: rgba(255, 255, 255, 0.8);
+      border-color: rgba(13, 71, 161, 0.12);
     }
 
     .episode-item.active {
-      background: rgba(13, 71, 161, 0.08);
+      background: rgba(13, 71, 161, 0.06);
       border-color: #0d47a1;
-      box-shadow: 0 4px 12px rgba(13, 71, 161, 0.10);
+      box-shadow: 0 4px 12px rgba(13, 71, 161, 0.08);
     }
 
     .thumbnail {
@@ -594,7 +647,7 @@
 
     .episode-title {
       font-weight: 600;
-      color: #0a2a44;
+      color: #1a1a2e;
       font-size: 0.9rem;
     }
 
@@ -684,7 +737,7 @@
         order: 3;
         width: 100%;
         margin-top: 0;
-        border-top: 2px solid rgba(13, 71, 161, 0.10);
+        border-top: 2px solid rgba(13, 71, 161, 0.08);
         padding-top: 16px;
       }
 
@@ -763,7 +816,7 @@
           </span>
         </div>
         <div class="recomendaciones-grid" id="recomendacionesGrid">
-          <!-- Las cards se cargarán dinámicamente -->
+          <!-- Las 3 cards se cargarán aquí dinámicamente -->
         </div>
       </div>
     </div>
@@ -820,13 +873,13 @@
           </span>
         </div>
         <div class="recomendaciones-grid" id="recomendacionesGridMobile">
-          <!-- Las cards se cargarán dinámicamente para móviles -->
+          <!-- Las 3 cards se cargarán aquí dinámicamente para móviles -->
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ====== JavaScript (IDÉNTICO AL ORIGINAL CON LA LÓGICA DE RECOMENDACIONES AÑADIDA) ====== -->
+  <!-- ====== JavaScript (IDÉNTICO AL ORIGINAL, SIN MODIFICACIONES) ====== -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
   <script>
@@ -844,14 +897,14 @@
     // URL base para Cloudflare Workers
     const CLOUDFLARE_BASE_URL = "https://proyecto-cloudflare.apiprueba2025.workers.dev";
 
-    // Configuración de Google Sheets (misma ID que el menú principal)
+    // Configuración de Google Sheets
     const GOOGLE_SHEETS_CONFIG = {
       SPREADSHEET_ID: '1V4LTYiuTDZ_Y_k6GRyVmFm5-G3rVhE6x1KfIcxJfLqM',
-      SHEET_NAME: 'Iframes', // Hoja diferente para iframes
-      RANGE: 'A:F' // Ajusta según las columnas que necesites
+      SHEET_NAME: 'Iframes',
+      RANGE: 'A:F'
     };
 
-    // Variables globales dinámicas
+    // Variables globales
     let nombreSerie = "";
     let temporada = "";
     let idioma = "";
@@ -859,7 +912,7 @@
     let episodios = [];
     let currentEpisode = 0;
     let servidorActivo = null;
-    let servicioActivo = 'firebase'; // 'firebase', 'cloudflare' o 'sheets'
+    let servicioActivo = 'firebase';
     let todasLasSeriesRecomendadas = [];
 
     // Inicializar Firebase
@@ -912,7 +965,7 @@
       document.getElementById("episodeCount").textContent = "0 episodios";
     }
 
-    /* ==================== NUEVAS FUNCIONES PARA DROPDOWN DE SERVICIO ==================== */
+    /* ==================== DROPDOWN DE SERVICIO ==================== */
     function toggleDropdown() {
       const dropdown = document.getElementById('serviceDropdown');
       dropdown.classList.toggle('active');
@@ -932,7 +985,6 @@
       servicioActivo = nuevoServicio;
       updateServiceUI();
       
-      // Recargar datos con el nuevo servicio
       currentEpisode = 0;
       cargarEpisodios();
       cargarSeriesRecomendadas();
@@ -966,14 +1018,12 @@
         toggleText.textContent = 'Cambiar servicio (Google Sheets)';
       }
       
-      // Actualizar indicadores
       recomendacionesIndicator.innerHTML = `${icono} ${servicioNombre}`;
       recomendacionesIndicator.className = `service-status-indicator ${claseIndicador}`;
       
       recomendacionesIndicatorMobile.innerHTML = `${icono} ${servicioNombre}`;
       recomendacionesIndicatorMobile.className = `service-status-indicator ${claseIndicador}`;
       
-      // Actualizar opciones activas en el dropdown
       document.querySelectorAll('.service-dropdown-item').forEach(item => {
         const itemService = item.getAttribute('data-service');
         if (itemService === servicioActivo) {
@@ -1087,7 +1137,6 @@
         renderSidebar();
       } catch (error) {
         console.error("Error cargando desde Firebase:", error);
-        // Rotar al siguiente servicio
         servicioActivo = 'cloudflare';
         updateServiceUI();
         await cargarEpisodiosDesdeCloudflare();
@@ -1162,7 +1211,6 @@
         renderSidebar();
       } catch (error) {
         console.error("Error cargando desde Cloudflare:", error);
-        // Rotar al siguiente servicio
         servicioActivo = 'sheets';
         updateServiceUI();
         await cargarEpisodiosDesdeGoogleSheets();
@@ -1172,7 +1220,6 @@
     /* ==================== GOOGLE SHEETS ==================== */
     async function cargarEpisodiosDesdeGoogleSheets() {
       try {
-        // URL para obtener los datos en formato CSV
         const csvUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEETS_CONFIG.SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${GOOGLE_SHEETS_CONFIG.SHEET_NAME}`;
         
         console.log("Cargando desde Google Sheets URL:", csvUrl);
@@ -1185,14 +1232,12 @@
         const csvText = await response.text();
         console.log("Datos CSV recibidos (primeros 500 chars):", csvText.substring(0, 500));
         
-        // Parsear el CSV
         const rows = parseGoogleSheetsCSV(csvText);
         
         if (rows.length === 0) {
           throw new Error("No se encontraron datos en Google Sheets");
         }
         
-        // Identificar índices de columnas basados en encabezados
         const headers = rows[0].map(h => h.trim().toLowerCase());
         const indexSerie = headers.findIndex(h => h.includes('serie') || h.includes('nombre'));
         const indexTemporada = headers.findIndex(h => h.includes('temporada') || h.includes('season'));
@@ -1201,7 +1246,6 @@
         const indexEpisodio = headers.findIndex(h => h.includes('episodio') || h.includes('episode'));
         const indexIframe = headers.findIndex(h => h.includes('iframe') || h.includes('embed'));
         
-        // Validar que tenemos las columnas necesarias
         if (indexSerie === -1 || indexTemporada === -1 || indexEpisodio === -1 || indexIframe === -1) {
           console.error("Encabezados encontrados:", headers);
           throw new Error("Formato de Google Sheets incorrecto. Se necesitan columnas: Serie, Temporada, Episodio, Iframe");
@@ -1210,11 +1254,9 @@
         episodios = [];
         const processedRows = new Set();
         
-        // Procesar filas
         for (let i = 1; i < rows.length; i++) {
           const row = rows[i];
           
-          // Verificar que la fila tiene suficientes columnas
           if (row.length <= Math.max(indexSerie, indexTemporada, indexEpisodio, indexIframe)) {
             continue;
           }
@@ -1226,7 +1268,6 @@
           const rowEpisodio = (row[indexEpisodio] || '').trim();
           const rowIframe = (row[indexIframe] || '').trim();
           
-          // Filtrar por serie, temporada e idioma
           if (rowSerie.toLowerCase() !== nombreSerie.toLowerCase() ||
               rowTemporada !== temporada ||
               rowIdioma.toLowerCase() !== idioma.toLowerCase()) {
@@ -1267,14 +1308,12 @@
         
       } catch (error) {
         console.error("Error cargando desde Google Sheets:", error);
-        // Rotar de vuelta a Firebase
         servicioActivo = 'firebase';
         updateServiceUI();
         await cargarEpisodiosDesdeFirebase();
       }
     }
 
-    // Función auxiliar para parsear CSV de Google Sheets
     function parseGoogleSheetsCSV(text) {
       const rows = [];
       const lines = text.split('\n');
@@ -1362,7 +1401,7 @@
             changeVideo(servidorActivo);
           };
           const img = document.createElement('img');
-          img.src = getCustomThumbnailURL(servidorActivo);
+          img.src = "https://excelpic.s3.us-west-2.amazonaws.com/QESGQPMOPKR1/blob-NCnd1741995020243.webp";
           img.className = 'thumbnail';
           const info = document.createElement('div');
           info.className = 'episode-info';
@@ -1509,11 +1548,7 @@
       }
     }
 
-    function getCustomThumbnailURL() {
-      return "https://excelpic.s3.us-west-2.amazonaws.com/QESGQPMOPKR1/blob-NCnd1741995020243.webp";
-    }
-
-    /* ==================== FUNCIONES PARA RECOMENDACIONES ==================== */
+    /* ==================== RECOMENDACIONES ==================== */
     async function cargarSeriesRecomendadas() {
       try {
         if (servicioActivo === 'firebase') {

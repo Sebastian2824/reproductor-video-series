@@ -6,13 +6,13 @@
   <title>Iniciar Sesión</title>
   
   <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Google Fonts (Inter) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
 
   <style>
     /* ============================================================
-       RESET Y BASE
+       RESET Y BASE — fondo con imagen y overlay
     ============================================================ */
     * {
       margin: 0;
@@ -21,17 +21,17 @@
     }
 
     body {
-      font-family: 'Poppins', sans-serif;
+      font-family: 'Inter', 'Segoe UI', 'Roboto', sans-serif;
       min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      background: linear-gradient(145deg, #e1f0ff 0%, #b6d4fe 40%, #7bb3f0 100%);
+      background: url(https://static.wixstatic.com/media/8a7da0_da693a5c2b2d42bbb084707197421b0a~mv2.png) center/cover no-repeat fixed;
       padding: 20px;
       position: relative;
     }
 
-    /* Overlay decorativo */
+    /* Overlay suave (igual que en las otras interfaces) */
     body::before {
       content: '';
       position: fixed;
@@ -39,25 +39,25 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: radial-gradient(circle at 20% 30%, rgba(255,255,255,0.15) 0%, transparent 70%);
-      pointer-events: none;
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(4px);
       z-index: 0;
     }
 
     /* ============================================================
-       CONTENEDOR PRINCIPAL — glassmorphism
+       CONTENEDOR PRINCIPAL — glassmorphism azulado
     ============================================================ */
     .login-container {
       position: relative;
       z-index: 1;
       width: 100%;
       max-width: 440px;
-      background: rgba(255, 255, 255, 0.60);
+      background: rgba(255, 255, 255, 0.70);
       backdrop-filter: blur(20px) saturate(180%);
       -webkit-backdrop-filter: blur(20px) saturate(180%);
       border-radius: 32px;
-      box-shadow: 0 20px 40px -12px rgba(0, 20, 40, 0.30), inset 0 1px 0 rgba(255,255,255,0.7);
-      border: 1px solid rgba(255,255,255,0.4);
+      box-shadow: 0 20px 40px -12px rgba(13, 71, 161, 0.20), inset 0 1px 0 rgba(255,255,255,0.7);
+      border: 1px solid rgba(255,255,255,0.5);
       overflow: hidden;
       margin: 20px;
       transition: all 0.3s ease;
@@ -137,7 +137,7 @@
       margin-bottom: 6px;
       font-weight: 600;
       font-size: 0.85rem;
-      color: #0a2a44;
+      color: #1a1a2e;
     }
 
     .input-group input {
@@ -146,17 +146,18 @@
       border: 1px solid rgba(0,0,0,0.06);
       border-radius: 40px;
       font-size: 0.95rem;
-      font-family: 'Poppins', sans-serif;
-      background: rgba(255, 255, 255, 0.6);
+      font-family: 'Inter', sans-serif;
+      background: rgba(255, 255, 255, 0.7);
       backdrop-filter: blur(4px);
       transition: all 0.25s ease;
-      color: #0a2a44;
+      color: #1a1a2e;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
     }
 
     .input-group input:focus {
       outline: none;
       border-color: #0d47a1;
-      background: rgba(255, 255, 255, 0.85);
+      background: rgba(255, 255, 255, 0.9);
       box-shadow: 0 0 0 4px rgba(13, 71, 161, 0.08);
     }
 
@@ -185,31 +186,12 @@
     ============================================================ */
     .remember-forgot {
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-end;
       align-items: center;
       margin-bottom: 28px;
       font-size: 0.85rem;
       flex-wrap: wrap;
       gap: 8px;
-    }
-
-    .remember-me {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .remember-me input[type="checkbox"] {
-      accent-color: #0d47a1;
-      width: 16px;
-      height: 16px;
-      cursor: pointer;
-    }
-
-    .remember-me label {
-      color: #0a2a44;
-      font-weight: 500;
-      cursor: pointer;
     }
 
     .forgot-password a {
@@ -239,7 +221,7 @@
       cursor: pointer;
       transition: all 0.3s ease;
       box-shadow: 0 6px 20px rgba(2, 136, 209, 0.30);
-      font-family: 'Poppins', sans-serif;
+      font-family: 'Inter', sans-serif;
       letter-spacing: 0.5px;
       margin-bottom: 20px;
     }
@@ -255,7 +237,7 @@
     }
 
     /* ============================================================
-       REGISTRO
+       REGISTRO (opcional)
     ============================================================ */
     .register-link {
       text-align: center;
@@ -302,13 +284,13 @@
       max-width: 420px;
       width: 100%;
       border: 1px solid rgba(255,255,255,0.4);
-      box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 20px 40px -12px rgba(13, 71, 161, 0.20);
     }
 
     #ventana-recuperacion h2 {
       font-size: 1.5rem;
       font-weight: 700;
-      color: #0a2a44;
+      color: #1a1a2e;
       margin-bottom: 20px;
       text-align: center;
     }
@@ -319,18 +301,19 @@
       border: 1px solid rgba(0,0,0,0.06);
       border-radius: 40px;
       font-size: 0.9rem;
-      font-family: 'Poppins', sans-serif;
-      background: rgba(255, 255, 255, 0.6);
+      font-family: 'Inter', sans-serif;
+      background: rgba(255, 255, 255, 0.7);
       backdrop-filter: blur(4px);
       transition: all 0.25s ease;
       margin-bottom: 12px;
-      color: #0a2a44;
+      color: #1a1a2e;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
     }
 
     #ventana-recuperacion input:focus {
       outline: none;
       border-color: #0d47a1;
-      background: rgba(255, 255, 255, 0.85);
+      background: rgba(255, 255, 255, 0.9);
       box-shadow: 0 0 0 4px rgba(13, 71, 161, 0.08);
     }
 
@@ -351,7 +334,7 @@
       cursor: pointer;
       transition: all 0.3s ease;
       box-shadow: 0 6px 20px rgba(2, 136, 209, 0.25);
-      font-family: 'Poppins', sans-serif;
+      font-family: 'Inter', sans-serif;
       margin-top: 4px;
     }
 
@@ -372,7 +355,7 @@
       font-size: 0.9rem;
       cursor: pointer;
       transition: color 0.2s;
-      font-family: 'Poppins', sans-serif;
+      font-family: 'Inter', sans-serif;
     }
 
     #ventana-recuperacion .cancel-btn:hover {
@@ -420,9 +403,7 @@
 
     @media (max-width: 380px) {
       .remember-forgot {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
+        justify-content: center;
       }
     }
   </style>
@@ -453,7 +434,7 @@
         
         <div class="remember-forgot">
           <div class="forgot-password">
-            <a href="#">¿Olvidaste tu contraseña?</a>
+            <a href="#" onclick="document.getElementById('ventana-recuperacion').style.display='flex'">¿Olvidaste tu contraseña?</a>
           </div>
         </div>
         

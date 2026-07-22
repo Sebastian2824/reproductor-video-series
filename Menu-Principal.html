@@ -6,16 +6,16 @@
   <title>Series | Menú Principal</title>
 
   <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Google Fonts (Inter, similar a Segoe UI) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
   <style>
     /* ============================================================
-       RESET Y BASE — fondo con gradiente azul/celeste
+       RESET Y BASE — fondo gris claro (estilo primer sistema)
     ============================================================ */
     * {
       margin: 0;
@@ -24,43 +24,48 @@
     }
 
     body {
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(145deg, #e1f0ff 0%, #b6d4fe 40%, #7bb3f0 100%);
+      font-family: 'Inter', 'Segoe UI', 'Roboto', sans-serif;
+      background: #f5f7fa;
       min-height: 100vh;
-      color: #0a2a44;
-      overflow-x: hidden;
+      color: #1a1a2e;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
       padding-top: 10px;
-      position: relative;
     }
 
     /* ============================================================
-       HEADER — degradado azul/celeste con vidrio
+       HEADER — degradado azul (estilo moderno)
     ============================================================ */
     .header {
-      position: fixed;
-      top: 16px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 94%;
-      max-width: 1440px;
-      background: linear-gradient(135deg, rgba(13, 71, 161, 0.75), rgba(2, 136, 209, 0.70));
-      backdrop-filter: blur(16px) saturate(200%);
-      -webkit-backdrop-filter: blur(16px) saturate(200%);
-      border-radius: 32px;
-      box-shadow: 0 20px 40px -8px rgba(0, 40, 80, 0.5), inset 0 1px 0 rgba(255,255,255,0.3);
-      z-index: 1100;
-      padding: 14px 28px;
-      border: 1px solid rgba(255,255,255,0.25);
-      transition: all 0.3s ease;
+      background: linear-gradient(135deg, #0d47a1 0%, #0288d1 50%, #0d47a1 100%);
+      background-size: 200% 200%;
+      animation: headerGradient 6s ease infinite;
+      color: white;
+      padding: 12px 30px;
+      box-shadow: 0 4px 20px rgba(13, 71, 161, 0.3);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      height: auto;
+      min-height: 70px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
 
-    .header .header-row {
+    @keyframes headerGradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .header-row {
       display: flex;
       flex-direction: column;
       gap: 10px;
       width: 100%;
+      max-width: 1440px;
+      margin: 0 auto;
     }
 
     .header-top {
@@ -74,48 +79,56 @@
     .header .left {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 16px;
     }
 
     .logo-text {
-      font-size: 1.7rem;
-      font-weight: 800;
-      color: #ffffff;
-      text-shadow: 0 2px 8px rgba(0, 30, 60, 0.3);
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: white;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       margin: 0;
-      letter-spacing: -0.5px;
     }
 
     .logo-text .fa-film {
-      background: rgba(255,255,255,0.2);
+      background: rgba(255, 255, 255, 0.15);
       padding: 8px;
-      border-radius: 14px;
-      font-size: 1.3rem;
-      color: #b3e5fc;
+      border-radius: 12px;
+      font-size: 1.2rem;
+      color: white;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.3s ease;
     }
 
-    /* Indicador de servicio — badge blanco con transparencia */
+    .logo-text .fa-film:hover {
+      transform: rotate(-10deg) scale(1.05);
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    /* Indicador de servicio — badge azul claro */
     .service-indicator {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      font-size: 0.75rem;
+      font-size: 10px;
       font-weight: 600;
-      color: #ffffff;
-      background: rgba(255, 255, 255, 0.15);
-      padding: 5px 16px 5px 12px;
-      border-radius: 40px;
-      border: 1px solid rgba(255,255,255,0.25);
-      backdrop-filter: blur(4px);
-      letter-spacing: 0.3px;
+      color: white;
+      background: rgba(255, 255, 255, 0.12);
+      padding: 4px 16px 4px 12px;
+      border-radius: 50px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(10px);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
     .service-indicator i {
       color: #b3e5fc;
-      font-size: 0.9rem;
+      font-size: 0.8rem;
     }
 
     /* Zona derecha */
@@ -126,39 +139,40 @@
       flex-wrap: wrap;
     }
 
-    /* Botón dropdown */
+    /* Dropdown de servicios — adaptado al azul */
     .service-dropdown {
       position: relative;
       display: inline-block;
     }
 
     .service-dropdown-toggle {
-      background: rgba(255, 255, 255, 0.15);
-      color: #ffffff;
+      background: rgba(255, 255, 255, 0.12);
+      color: white;
       font-weight: 600;
       padding: 8px 20px 8px 16px;
-      border-radius: 40px;
-      border: 1px solid rgba(255,255,255,0.2);
-      transition: all 0.25s ease;
+      border-radius: 50px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: all 0.3s ease;
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      font-size: 0.85rem;
+      font-size: 13px;
       cursor: pointer;
-      backdrop-filter: blur(4px);
+      backdrop-filter: blur(10px);
+      font-family: inherit;
     }
 
     .service-dropdown-toggle:hover {
-      background: rgba(255, 255, 255, 0.30);
-      border-color: rgba(255,255,255,0.5);
-      transform: scale(1.03);
-      box-shadow: 0 8px 20px rgba(0, 40, 80, 0.25);
+      background: rgba(255, 255, 255, 0.25);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
     }
 
     .service-dropdown-toggle .fa-chevron-down {
-      font-size: 0.7rem;
+      font-size: 11px;
       transition: transform 0.3s ease;
-      color: #b3e5fc;
+      opacity: 0.7;
     }
 
     .service-dropdown.active .service-dropdown-toggle .fa-chevron-down {
@@ -167,20 +181,19 @@
 
     .service-dropdown-menu {
       position: absolute;
-      top: calc(100% + 10px);
+      top: calc(100% + 12px);
       right: 0;
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(16px);
-      border-radius: 24px;
-      box-shadow: 0 20px 40px -12px rgba(0, 30, 60, 0.4);
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
       min-width: 210px;
       z-index: 1200;
       overflow: hidden;
       opacity: 0;
       visibility: hidden;
-      transform: translateY(-6px) scale(0.96);
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-      border: 1px solid rgba(255,255,255,0.3);
+      transform: translateY(-10px) scale(0.95);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border-top: 4px solid #0288d1;
     }
 
     .service-dropdown.active .service-dropdown-menu {
@@ -194,7 +207,7 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      color: #0a2a44;
+      color: #1a1a2e;
       cursor: pointer;
       transition: all 0.2s ease;
       font-size: 0.9rem;
@@ -236,32 +249,34 @@
       opacity: 1;
     }
 
-    /* Botón Salir — azul/celeste */
+    /* Botón Salir — estilo azul */
     .btn-solid-sm {
       background: rgba(255, 255, 255, 0.12);
-      color: #ffffff;
+      color: white;
       font-weight: 600;
       padding: 8px 20px;
-      border-radius: 40px;
-      border: 1px solid rgba(255,255,255,0.2);
-      transition: all 0.25s ease;
+      border-radius: 50px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: all 0.3s ease;
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      font-size: 0.85rem;
+      font-size: 13px;
       text-decoration: none;
-      backdrop-filter: blur(4px);
+      backdrop-filter: blur(10px);
+      font-family: inherit;
+      cursor: pointer;
     }
 
     .btn-solid-sm:hover {
-      background: #ffffff;
+      background: white;
       color: #0d47a1;
-      border-color: #ffffff;
-      transform: scale(1.04);
-      box-shadow: 0 8px 20px rgba(0, 40, 80, 0.25);
+      border-color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
     }
 
-    /* Filtros */
+    /* Filtros (estilo primer sistema adaptado) */
     .header-bottom {
       display: flex;
       align-items: center;
@@ -282,22 +297,23 @@
     .leno-select,
     .leno-input {
       border-radius: 40px;
-      border: 1px solid rgba(255,255,255,0.25);
-      background: rgba(255, 255, 255, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.15);
       backdrop-filter: blur(6px);
       padding: 10px 20px;
       font-size: 0.85rem;
       font-weight: 500;
-      color: #ffffff;
+      color: white;
       min-width: 160px;
       transition: all 0.25s ease;
       box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-      font-family: 'Poppins', sans-serif;
+      font-family: inherit;
+      outline: none;
     }
 
     .leno-select option {
       background: #0d47a1;
-      color: #ffffff;
+      color: white;
     }
 
     .leno-select::placeholder,
@@ -307,30 +323,24 @@
 
     .leno-select:focus,
     .leno-input:focus {
-      border-color: #ffffff;
+      border-color: rgba(255,255,255,0.5);
       outline: none;
-      box-shadow: 0 0 0 4px rgba(255,255,255,0.15), 0 4px 12px rgba(0,0,0,0.08);
-      background: rgba(255, 255, 255, 0.35);
-      color: #ffffff;
-    }
-
-    .leno-select option {
-      background: #0d47a1;
+      box-shadow: 0 0 0 4px rgba(255,255,255,0.1), 0 4px 12px rgba(0,0,0,0.08);
+      background: rgba(255, 255, 255, 0.25);
+      color: white;
     }
 
     /* ============================================================
        CONTENIDO PRINCIPAL
     ============================================================ */
     .main-content {
-      margin-top: 140px;
-      padding: 20px 24px 60px;
+      padding: 30px 24px 60px;
       max-width: 1440px;
-      margin-left: auto;
-      margin-right: auto;
+      margin: 0 auto;
     }
 
     /* ============================================================
-       GRID DE TARJETAS — Fondo azul claro con sombras
+       GRID DE TARJETAS — estilo acrílico azul
     ============================================================ */
     .series-grid {
       display: grid;
@@ -345,31 +355,55 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Tarjeta — degradado azul/celeste con efecto acrílico */
+    /* Tarjeta — fondo blanco con sombra y borde azul suave */
     .serie-card {
-      background: linear-gradient(145deg, rgba(255, 255, 255, 0.70), rgba(179, 229, 252, 0.40));
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-radius: 32px;
-      box-shadow: 0 16px 40px -8px rgba(2, 136, 209, 0.25), inset 0 1px 0 rgba(255,255,255,0.7);
+      background: white;
+      border-radius: 18px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.04);
       overflow: hidden;
-      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-      border: 1px solid rgba(255,255,255,0.5);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid rgba(0, 0, 0, 0.04);
       display: flex;
       flex-direction: column;
+      position: relative;
+    }
+
+    .serie-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, #0d47a1, #42a5f5, #0d47a1);
+      background-size: 200% 100%;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      z-index: 2;
+    }
+
+    .serie-card:hover::before {
+      opacity: 1;
+      animation: cardBorderMove 2s ease infinite;
+    }
+
+    @keyframes cardBorderMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
 
     .serie-card:hover {
-      transform: translateY(-12px) scale(1.02);
-      box-shadow: 0 28px 56px -12px rgba(13, 71, 161, 0.35), inset 0 1px 0 rgba(255,255,255,0.9);
-      border-color: rgba(255,255,255,0.7);
+      transform: translateY(-6px);
+      box-shadow: 0 15px 40px rgba(13, 71, 161, 0.12);
+      border-color: rgba(13, 71, 161, 0.08);
     }
 
     .serie-card img {
       width: 100%;
       height: 340px;
       object-fit: cover;
-      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
       border-bottom: 2px solid rgba(255,255,255,0.3);
     }
 
@@ -385,17 +419,15 @@
       flex-direction: column;
       align-items: center;
       gap: 6px;
-      background: rgba(255,255,255,0.2);
-      backdrop-filter: blur(4px);
+      background: white;
     }
 
     .serie-info h3 {
       font-size: 1.25rem;
       font-weight: 700;
-      color: #0a2a44;
+      color: #1a1a2e;
       margin: 0 0 2px 0;
       letter-spacing: -0.2px;
-      text-shadow: 0 1px 2px rgba(255,255,255,0.3);
     }
 
     .serie-info p {
@@ -403,11 +435,10 @@
       color: #0d47a1;
       font-weight: 600;
       margin: 0 0 10px 0;
-      background: rgba(255,255,255,0.4);
+      background: #f0f7ff;
       padding: 4px 18px;
       border-radius: 40px;
-      backdrop-filter: blur(4px);
-      border: 1px solid rgba(255,255,255,0.3);
+      border: 1px solid rgba(13, 71, 161, 0.08);
     }
 
     .btn-ver {
@@ -421,20 +452,21 @@
       transition: all 0.3s ease;
       text-decoration: none;
       display: inline-block;
-      box-shadow: 0 6px 20px rgba(2, 136, 209, 0.4);
+      box-shadow: 0 6px 20px rgba(2, 136, 209, 0.3);
       letter-spacing: 0.5px;
       margin-top: 6px;
-      border: 1px solid rgba(255,255,255,0.2);
+      cursor: pointer;
+      font-family: inherit;
     }
 
     .btn-ver:hover {
       transform: scale(1.07);
-      box-shadow: 0 12px 28px rgba(13, 71, 161, 0.5);
+      box-shadow: 0 12px 28px rgba(13, 71, 161, 0.4);
       background: linear-gradient(135deg, #0a2a44, #0d47a1);
     }
 
     /* ============================================================
-       PAGINACIÓN — azul vibrante
+       PAGINACIÓN — azul
     ============================================================ */
     #paginacion {
       display: flex;
@@ -450,15 +482,14 @@
       height: 46px;
       border-radius: 50%;
       border: none;
-      background: rgba(255, 255, 255, 0.25);
-      backdrop-filter: blur(6px);
-      color: #0a2a44;
+      background: white;
+      color: #0d47a1;
       font-size: 1.1rem;
       font-weight: 700;
       cursor: pointer;
       transition: all 0.25s ease;
       box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-      border: 1px solid rgba(255,255,255,0.3);
+      border: 1px solid rgba(13, 71, 161, 0.1);
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -466,9 +497,9 @@
 
     #paginacion button:hover:not(:disabled) {
       background: #0d47a1;
-      color: #fff;
+      color: white;
       transform: scale(1.10);
-      box-shadow: 0 8px 24px rgba(13, 71, 161, 0.35);
+      box-shadow: 0 8px 24px rgba(13, 71, 161, 0.25);
       border-color: #0d47a1;
     }
 
@@ -481,12 +512,11 @@
     #paginacion span {
       font-size: 0.95rem;
       font-weight: 600;
-      color: #0a2a44;
-      background: rgba(255, 255, 255, 0.30);
-      backdrop-filter: blur(6px);
+      color: #1a1a2e;
+      background: white;
       padding: 6px 20px;
       border-radius: 40px;
-      border: 1px solid rgba(255,255,255,0.3);
+      border: 1px solid rgba(0,0,0,0.04);
       box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     }
 
@@ -498,10 +528,10 @@
       width: 100%;
       padding: 60px 20px;
       grid-column: 1 / -1;
-      background: rgba(255,255,255,0.2);
-      backdrop-filter: blur(8px);
-      border-radius: 48px;
-      border: 1px solid rgba(255,255,255,0.3);
+      background: white;
+      border-radius: 18px;
+      border: 1px solid rgba(0,0,0,0.04);
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.04);
     }
 
     .empty-state i {
@@ -513,12 +543,12 @@
 
     .empty-state h3 {
       font-size: 1.5rem;
-      color: #0a2a44;
+      color: #1a1a2e;
       margin-bottom: 6px;
     }
 
     .empty-state p {
-      color: #0d47a1;
+      color: #6c757d;
       font-weight: 500;
     }
 
@@ -526,29 +556,29 @@
        RESPONSIVE
     ============================================================ */
     @media (max-width: 1024px) {
-      .header { width: 96%; padding: 12px 20px; }
-      .logo-text { font-size: 1.4rem; }
+      .header { padding: 12px 20px; }
+      .logo-text { font-size: 18px; }
       .leno-select, .leno-input { min-width: 140px; }
     }
 
     @media (max-width: 768px) {
-      .header { top: 12px; padding: 12px 16px; border-radius: 28px; }
+      .header { padding: 10px 16px; min-height: 60px; }
       .header-top { flex-direction: column; align-items: stretch; gap: 8px; }
       .header .left { justify-content: center; }
       .header .right { justify-content: center; }
       .filtros-inline { flex-wrap: wrap; justify-content: center; gap: 10px; }
       .leno-select, .leno-input { min-width: 140px; flex: 1 1 140px; }
-      .main-content { margin-top: 180px; padding: 12px; }
+      .main-content { padding: 20px 16px 40px; }
       .series-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 24px; }
       .serie-card img { height: 280px; }
     }
 
     @media (max-width: 480px) {
-      .header { width: 98%; padding: 10px 12px; border-radius: 24px; top: 8px; }
-      .logo-text { font-size: 1.1rem; }
-      .service-dropdown-toggle, .btn-solid-sm { padding: 6px 14px; font-size: 0.75rem; }
+      .header { padding: 8px 12px; min-height: 56px; }
+      .logo-text { font-size: 16px; }
+      .service-dropdown-toggle, .btn-solid-sm { padding: 6px 14px; font-size: 12px; }
       .leno-select, .leno-input { min-width: 100%; flex: 1 1 100%; }
-      .main-content { margin-top: 200px; padding: 8px; }
+      .main-content { padding: 12px 8px 30px; }
       .series-grid { grid-template-columns: 1fr 1fr; gap: 16px; }
       .serie-card img { height: 200px; }
       .serie-info { padding: 14px 12px 18px; }
@@ -566,9 +596,9 @@
 </head>
 
 <body>
- <!-- Header rediseñado con colores azul/celeste -->
+ <!-- Header con degradado azul y estilo corporativo -->
 <header id="header" class="header">
-  <div class="container header-row">
+  <div class="header-row">
     <div class="header-top">
       <div class="left">
         <h1 class="logo-text">
@@ -585,7 +615,7 @@
             <i class="fas fa-exchange-alt"></i> Cambiar servicio <i class="fas fa-chevron-down"></i>
           </button>
           <div class="service-dropdown-menu" id="serviceMenu">
-            <div class="service-dropdown-item" data-service="firebase">
+            <div class="service-dropdown-item active" data-service="firebase">
               <i class="fas fa-database service-icon"></i>
               <span>Firebase</span>
               <i class="fas fa-check service-check"></i>
@@ -628,7 +658,15 @@
 
 <!-- Contenido principal -->
 <main class="main-content container">
-  <div class="series-grid" id="contenedorSeries"></div>
+  <div class="series-grid" id="contenedorSeries">
+    <!-- Las tarjetas se generarán dinámicamente -->
+  </div>
+  <!-- Paginación -->
+  <div id="paginacion">
+    <button id="prevPage" disabled><i class="fas fa-chevron-left"></i></button>
+    <span id="pageInfo">Página 1</span>
+    <button id="nextPage"><i class="fas fa-chevron-right"></i></button>
+  </div>
 </main>
 
   <!-- Scripts base del tema (no modificados) -->

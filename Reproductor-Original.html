@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <title>Reproductor estilo YouTube - Firebase</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  
+
   <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Google Fonts (Inter) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
 
   <style>
     /* ============================================================
-       RESET Y BASE
+       RESET Y BASE — fondo original con overlay
     ============================================================ */
     * {
       margin: 0;
@@ -23,13 +23,13 @@
     body {
       margin: 0;
       padding: 20px;
-      font-family: 'Poppins', sans-serif;
+      font-family: 'Inter', 'Segoe UI', 'Roboto', sans-serif;
       background: url(https://static.wixstatic.com/media/8a7da0_da693a5c2b2d42bbb084707197421b0a~mv2.png) center/cover no-repeat fixed;
       min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      color: #0a2a44;
+      color: #1a1a2e;
       position: relative;
     }
 
@@ -47,7 +47,7 @@
     }
 
     /* ============================================================
-       CONTENEDOR PRINCIPAL — glassmorphism
+       CONTENEDOR PRINCIPAL — glassmorphism azulado
     ============================================================ */
     .container {
       position: relative;
@@ -55,12 +55,12 @@
       display: flex;
       width: 94%;
       max-width: 1440px;
-      background: rgba(255, 255, 255, 0.60);
+      background: rgba(255, 255, 255, 0.70);
       backdrop-filter: blur(16px) saturate(180%);
       -webkit-backdrop-filter: blur(16px) saturate(180%);
       border-radius: 32px;
-      box-shadow: 0 20px 40px -12px rgba(0, 20, 40, 0.30), inset 0 1px 0 rgba(255,255,255,0.7);
-      border: 1px solid rgba(255,255,255,0.4);
+      box-shadow: 0 20px 40px -12px rgba(13, 71, 161, 0.20), inset 0 1px 0 rgba(255,255,255,0.7);
+      border: 1px solid rgba(255,255,255,0.5);
       overflow: hidden;
       transition: all 0.3s ease;
     }
@@ -88,20 +88,21 @@
     .episode-selector {
       padding: 10px 16px;
       border-radius: 40px;
-      border: 1px solid rgba(0,0,0,0.08);
-      background: rgba(255, 255, 255, 0.6);
+      border: 1px solid rgba(0,0,0,0.06);
+      background: rgba(255, 255, 255, 0.8);
       backdrop-filter: blur(4px);
       font-weight: 600;
-      color: #0a2a44;
-      font-family: 'Poppins', sans-serif;
+      color: #1a1a2e;
+      font-family: 'Inter', sans-serif;
       min-width: 160px;
       transition: all 0.25s ease;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
     }
 
     .episode-selector:focus {
       outline: none;
       border-color: #0d47a1;
-      box-shadow: 0 0 0 4px rgba(13, 71, 161, 0.10);
+      box-shadow: 0 0 0 4px rgba(13, 71, 161, 0.08);
     }
 
     .controls-bar > div {
@@ -124,11 +125,12 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      font-family: 'Inter', sans-serif;
     }
 
     .control-btn:hover {
       transform: scale(1.04);
-      box-shadow: 0 6px 20px rgba(13, 71, 161, 0.35);
+      box-shadow: 0 6px 20px rgba(13, 71, 161, 0.3);
       background: linear-gradient(135deg, #0a2a44, #0d47a1);
     }
 
@@ -138,7 +140,7 @@
       aspect-ratio: 16 / 9;
       border-radius: 20px;
       overflow: hidden;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
       background: #000;
       position: relative;
     }
@@ -156,12 +158,13 @@
       align-items: center;
       font-weight: 600;
       font-size: 0.95rem;
-      color: #0a2a44;
+      color: #1a1a2e;
       padding: 8px 16px;
-      background: rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.6);
       backdrop-filter: blur(4px);
       border-radius: 40px;
-      border: 1px solid rgba(255,255,255,0.3);
+      border: 1px solid rgba(255,255,255,0.4);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
     }
 
     /* ============================================================
@@ -169,7 +172,7 @@
     ============================================================ */
     .sidebar {
       flex: 2;
-      background: rgba(255, 255, 255, 0.40);
+      background: rgba(255, 255, 255, 0.45);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       padding: 20px 18px;
@@ -183,12 +186,12 @@
     .sidebar-header {
       margin-bottom: 16px;
       padding-bottom: 12px;
-      border-bottom: 2px solid rgba(13, 71, 161, 0.10);
+      border-bottom: 2px solid rgba(13, 71, 161, 0.08);
     }
 
     .sidebar-header h2 {
       margin: 0 0 4px 0;
-      color: #0a2a44;
+      color: #1a1a2e;
       font-size: 1.2rem;
       font-weight: 700;
     }
@@ -207,12 +210,12 @@
 
     #episodeCount {
       display: inline-block;
-      background: rgba(13, 71, 161, 0.08);
+      background: rgba(13, 71, 161, 0.06);
       padding: 2px 14px;
       border-radius: 40px;
       font-weight: 600;
       font-size: 0.8rem;
-      border: 1px solid rgba(13, 71, 161, 0.10);
+      border: 1px solid rgba(13, 71, 161, 0.08);
     }
 
     .server-select {
@@ -220,11 +223,11 @@
       padding: 10px 14px;
       border-radius: 40px;
       border: 1px solid rgba(0,0,0,0.06);
-      background: rgba(255, 255, 255, 0.6);
+      background: rgba(255, 255, 255, 0.7);
       backdrop-filter: blur(4px);
       font-weight: 600;
-      color: #0a2a44;
-      font-family: 'Poppins', sans-serif;
+      color: #1a1a2e;
+      font-family: 'Inter', sans-serif;
       margin-bottom: 12px;
       transition: all 0.25s ease;
     }
@@ -244,12 +247,12 @@
     }
 
     .service-dropdown-toggle {
-      background: rgba(13, 71, 161, 0.08);
-      color: #0a2a44;
+      background: rgba(13, 71, 161, 0.06);
+      color: #1a1a2e;
       font-weight: 600;
       padding: 10px 16px;
       border-radius: 40px;
-      border: 1px solid rgba(13, 71, 161, 0.10);
+      border: 1px solid rgba(13, 71, 161, 0.08);
       box-shadow: 0 2px 4px rgba(0,0,0,0.02);
       transition: all 0.25s ease;
       display: inline-flex;
@@ -259,10 +262,11 @@
       cursor: pointer;
       font-size: 0.85rem;
       backdrop-filter: blur(4px);
+      font-family: 'Inter', sans-serif;
     }
 
     .service-dropdown-toggle:hover {
-      background: rgba(13, 71, 161, 0.12);
+      background: rgba(13, 71, 161, 0.10);
       border-color: #0d47a1;
     }
 
@@ -284,7 +288,7 @@
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(16px);
       border-radius: 16px;
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
       z-index: 1200;
       overflow: hidden;
       opacity: 0;
@@ -305,7 +309,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      color: #0a2a44;
+      color: #1a1a2e;
       cursor: pointer;
       transition: all 0.2s ease;
       font-size: 0.85rem;
@@ -318,12 +322,12 @@
     }
 
     .service-dropdown-item:hover {
-      background: rgba(13, 71, 161, 0.05);
+      background: rgba(13, 71, 161, 0.04);
       color: #0d47a1;
     }
 
     .service-dropdown-item.active {
-      background: rgba(13, 71, 161, 0.08);
+      background: rgba(13, 71, 161, 0.06);
       color: #0d47a1;
       font-weight: 600;
     }
@@ -369,7 +373,7 @@
     }
 
     .episode-item {
-      background: rgba(255, 255, 255, 0.5);
+      background: rgba(255, 255, 255, 0.6);
       backdrop-filter: blur(4px);
       border-radius: 16px;
       display: flex;
@@ -379,18 +383,46 @@
       transition: all 0.25s ease;
       border: 2px solid transparent;
       box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+      position: relative;
+    }
+
+    /* Borde superior animado en episodios (igual que en el sistema de gestión) */
+    .episode-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, #0d47a1, #42a5f5);
+      background-size: 200% 100%;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      border-radius: 16px 16px 0 0;
+    }
+
+    .episode-item:hover::before,
+    .episode-item.active::before {
+      opacity: 1;
+      animation: cardBorderMove 2s ease infinite;
+    }
+
+    @keyframes cardBorderMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
 
     .episode-item:hover {
       transform: scale(1.02);
-      background: rgba(255, 255, 255, 0.7);
-      border-color: rgba(13, 71, 161, 0.15);
+      background: rgba(255, 255, 255, 0.8);
+      border-color: rgba(13, 71, 161, 0.12);
     }
 
     .episode-item.active {
-      background: rgba(13, 71, 161, 0.08);
+      background: rgba(13, 71, 161, 0.06);
       border-color: #0d47a1;
-      box-shadow: 0 4px 12px rgba(13, 71, 161, 0.10);
+      box-shadow: 0 4px 12px rgba(13, 71, 161, 0.08);
     }
 
     .thumbnail {
@@ -410,7 +442,7 @@
 
     .episode-title {
       font-weight: 600;
-      color: #0a2a44;
+      color: #1a1a2e;
       font-size: 0.9rem;
     }
 
@@ -436,7 +468,7 @@
 
     @media (max-width: 900px) {
       body { padding: 12px; }
-      
+
       .container {
         flex-direction: column;
         border-radius: 28px;
@@ -554,7 +586,7 @@
           <span id="episodeCount">0 episodios</span>
         </div>
         <select class="server-select" id="serverSelect" onchange="changeVideo(this.value)"></select>
-        
+
         <!-- DROPDOWN PARA CAMBIAR SERVICIO -->
         <div class="service-dropdown" id="serviceDropdown">
           <button class="service-dropdown-toggle" id="serviceToggleBtn">
