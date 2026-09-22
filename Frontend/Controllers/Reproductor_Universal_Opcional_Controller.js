@@ -7,7 +7,7 @@ const IS_LOCAL =
 // 🔌 Backend de SQL Server (Railway - servicio nuevo)
 const SQLSERVER_BASE_URL = IS_LOCAL
     ? 'http://localhost:3001'
-    : 'https://reproductor-animes-plus-backend-production.up.railway.app/';   // ⚠️ Reemplazar por tu URL real
+    : 'https://reproductor-animes-plus-backend-production.up.railway.app';   // ⚠️ Reemplazar por tu URL real
 
 console.log(`🔌 SQL Server: ${SQLSERVER_BASE_URL} (${IS_LOCAL ? 'LOCAL' : 'PRODUCCIÓN'})`);
 
