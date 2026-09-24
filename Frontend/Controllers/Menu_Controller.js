@@ -1,4 +1,5 @@
-  // ============================================================
+import { ENV } from '../Config/config.js';
+// ============================================================
 // CONFIGURACIÓN DE ENTORNO
 // ============================================================
 const IS_LOCAL =
@@ -9,7 +10,7 @@ const IS_LOCAL =
 // 🔌 Backend de SQL Server (Railway - servicio nuevo)
 const SQLSERVER_BASE_URL = IS_LOCAL
     ? 'http://localhost:3001'   // 
-    : 'https://reproductor-animes-plus-backend-production.up.railway.app';
+    : ENV.AZURE_API_KEY_URL;
 
 console.log(`🔌 SQL Server: ${SQLSERVER_BASE_URL} (${IS_LOCAL ? 'LOCAL' : 'PRODUCCIÓN'})`);
 
@@ -17,25 +18,25 @@ console.log(`🔌 SQL Server: ${SQLSERVER_BASE_URL} (${IS_LOCAL ? 'LOCAL' : 'PRO
 // CONFIGURACIÓN DE FIREBASE
 // ============================================================
 const firebaseConfig = {
-    apiKey: "AIzaSyB6MY2y5uyum87PdUHUpY8NNh4D73Yhx4U",
-    authDomain: "animes-plus-89b93.firebaseapp.com",
-    projectId: "animes-plus-89b93",
-    storageBucket: "animes-plus-89b93.appspot.com",
-    messagingSenderId: "402867181985",
-    appId: "1:402867181985:web:d695b12977fe4270dbd3e0",
-    measurementId: "G-DN632G7XJT"
+    apiKey: ENV.FIREBASE_API_KEY,
+  authDomain: ENV.FIREBASE_AUTH_DOMAIN,
+  projectId: ENV.FIREBASE_PROYECT_ID,
+  storageBucket: ENV.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: ENV.FIREBASE_MESSAGING_SENDER_ID,
+  appId: ENV.FIREBASE_APP_ID,
+  measurementId: ENV.FIREBASE_MEASUREMENT_ID
 };
 
 // ============================================================
 // CONFIGURACIÓN DE CLOUDFLARE
 // ============================================================
-const CLOUDFLARE_ENDPOINT = 'https://proyecto-cloudflare.apiprueba2025.workers.dev';
+const CLOUDFLARE_ENDPOINT = ENV.CLOUDFLARE_API_KEY_URL;
 
 // ============================================================
 // CONFIGURACIÓN DE GOOGLE SHEETS
 // ============================================================
 const GOOGLE_SHEETS_CONFIG = {
-    SPREADSHEET_ID: '1V4LTYiuTDZ_Y_k6GRyVmFm5-G3rVhE6x1KfIcxJfLqM',
+    SPREADSHEET_ID: ENV.GOOGLESHEETS_API_KEY_URL,
     SHEET_NAME: 'Portadas',
     RANGE: 'A:D'
 };

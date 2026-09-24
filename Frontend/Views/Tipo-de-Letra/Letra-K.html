@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Series - Letra P</title>
+  <link rel="icon" type="image/png" href="../../image/Logo.png"><title>Series - Letra K</title>
   
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -558,9 +558,12 @@
         font-size: 0.7rem;
       }
     }
+    .btn-sqlserver.activo {
+  background: #0078D4;
+}
   </style>
 </head>
-<body>
+<body data-letra="k">
   <div class="filtros">
     <!-- Selector de servicio en el costado izquierdo -->
     <div class="selector-servicio">
@@ -568,6 +571,7 @@
         <button id="btnFirebase" class="activo btn-firebase" onclick="cambiarServicio('firebase')">Firebase</button>
         <button id="btnCloudflare" class="btn-cloudflare" onclick="cambiarServicio('cloudflare')">Cloudflare</button>
         <button id="btnSheets" class="btn-sheets" onclick="cambiarServicio('sheets')">Google Sheets</button>
+        <button id="btnSQLServer" class="btn-sqlserver" onclick="cambiarServicio('sqlserver')">SQL Server</button>
       </div>
       <div class="estado-servicio" id="estadoServicio">Servicio: Firebase</div>
     </div>
@@ -595,7 +599,7 @@
     </div>
   </div>
 
-  <script src="../js/Letra_P_Controller.js"></script>
+  <script type="module" src="../../Config/config.js"></script><script type="module" src="../../Controllers/Letras_Controller.js"></script>
   
 </body>
 </html>

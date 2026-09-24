@@ -1,0 +1,62 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - master # Cambia a master si tu rama se llama así
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies and Build
+        # 🔑 CORREGIDO: "env:" ahora está perfectamente alineado dentro del paso de compilación
+        env:
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROYECT_ID: ${{ secrets.VITE_FIREBASE_PROYECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+          VITE_FIREBASE_MEASUREMENT_ID: ${{ secrets.VITE_FIREBASE_MEASUREMENT_ID }}
+          VITE_CLOUDFLARE_API_KEY_URL: ${{ secrets.VITE_CLOUDFLARE_API_KEY_URL }}
+          VITE_CLOUDFLARE_WORKER_URL: ${{ secrets.VITE_CLOUDFLARE_WORKER_URL }}
+          VITE_GOOGLESHEETS_API_KEY_URL: ${{ secrets.VITE_GOOGLESHEETS_API_KEY_URL }}
+          VITE_AZURE_API_KEY_URL: ${{ secrets.VITE_AZURE_API_KEY_URL }}
+          VITE_SQLSERVER_PROD_URL: ${{ secrets.VITE_SQLSERVER_PROD_URL }}
+        run: |
+          cd Frontend
+          npm install
+          npm run build
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './Frontend/dist' # Sube únicamente tu código ofuscado y empaquetado
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

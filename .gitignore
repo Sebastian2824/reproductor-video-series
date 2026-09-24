@@ -1,8 +1,9 @@
-# Credenciales
-credentials.json
-Credentials/credentials.json
+# API
+Frontend/.env
 
-# Node
+Frontend/node_modules
+
+# Bancked
 Bancked/
 
 # Logs
