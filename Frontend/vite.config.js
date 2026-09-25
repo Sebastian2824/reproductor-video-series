@@ -48,6 +48,8 @@ export default defineConfig({
         takagisanMovieOriginal: resolve(__dirname, 'Views/Reproductor-de-Video-Original/Karakai-no-Jouzu-Takagisan-Movie-Original.html'),
 
         // ===== Views / Tipo-de-Letra =====
+        letra19: resolve(__dirname, 'Views/Tipo-de-Letra/Letra-1-9.html'),
+        letrasymb: resolve(__dirname, 'Views/Tipo-de-Letra/Letra-Symb.html'),
         letraA: resolve(__dirname, 'Views/Tipo-de-Letra/Letra-A.html'),
         letraB: resolve(__dirname, 'Views/Tipo-de-Letra/Letra-B.html'),
         letraC: resolve(__dirname, 'Views/Tipo-de-Letra/Letra-C.html'),
