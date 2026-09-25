@@ -37,28 +37,51 @@ const googleSheetsConfig = {
     RANGE: 'A:H'
 };
 
+// ================= CATEGORÍAS VÁLIDAS =================
+// Letras a-z + ñ, más categorías especiales:
+//   0-9   → números
+//   sym   → símbolos
+const CATEGORIAS_ESPECIALES = ['0-9', 'sym'];
+const ES_CATEGORIA_ESPECIAL = (v) => CATEGORIAS_ESPECIALES.includes(v);
+
+// Helper: ¿el string es una letra (a-z o ñ)?
+const ES_LETRA = (v) => /^[a-zñ]$/i.test(v);
+
 // ================= DETECCIÓN AUTOMÁTICA DE LA LETRA =================
-// Prioridad: ?letra=x  →  data-letra="x"  →  nombre de archivo  →  'a'
 function detectarLetra() {
-    // 1. Query string
+    // 1. Query string  → ?letra=a  |  ?letra=0-9  |  ?letra=sym
     const urlParams = new URLSearchParams(window.location.search);
-    const urlLetra = urlParams.get('letra');
-    if (urlLetra && /^[a-zñ]$/i.test(urlLetra)) {
-        console.log(`🔤 Letra detectada por URL: ${urlLetra.toUpperCase()}`);
-        return urlLetra.toLowerCase();
+    const urlLetra = (urlParams.get('letra') || '').toLowerCase();
+    if (ES_LETRA(urlLetra) || ES_CATEGORIA_ESPECIAL(urlLetra)) {
+        console.log(`🔤 Categoría detectada por URL: ${urlLetra}`);
+        return urlLetra;
     }
 
     // 2. data-letra en <html> o <body>
-    const dataLetra =
+    const dataLetra = (
         document.documentElement.dataset.letra ||
-        (document.body && document.body.dataset.letra);
-    if (dataLetra && /^[a-zñ]$/i.test(dataLetra)) {
-        console.log(`🔤 Letra detectada por data-letra: ${dataLetra.toUpperCase()}`);
-        return dataLetra.toLowerCase();
+        (document.body && document.body.dataset.letra) ||
+        ''
+    ).toLowerCase();
+    if (ES_LETRA(dataLetra) || ES_CATEGORIA_ESPECIAL(dataLetra)) {
+        console.log(`🔤 Categoría detectada por data-letra: ${dataLetra}`);
+        return dataLetra;
     }
 
-    // 3. Nombre del archivo: LETRA-A.html, letra_b.html, Letra-C.htm, etc.
+    // 3. Nombre del archivo: LETRA-A.html, Letra-0-9.html, Letra-Sym.html…
     const filename = window.location.pathname.split('/').pop().split('?')[0];
+
+    // Primero intenta con las categorías especiales
+    if (/letra[-_\s]*0[-_\s]*9/i.test(filename)) {
+        console.log(`🔤 Categoría detectada por filename (${filename}): 0-9`);
+        return '0-9';
+    }
+    if (/letra[-_\s]*(sym|simbolos|símbolos)/i.test(filename)) {
+        console.log(`🔤 Categoría detectada por filename (${filename}): sym`);
+        return 'sym';
+    }
+
+    // Luego letra normal
     const match = filename.match(/letra[-_\s]*([a-zñ])/i);
     if (match) {
         console.log(`🔤 Letra detectada por filename (${filename}): ${match[1].toUpperCase()}`);
@@ -66,7 +89,7 @@ function detectarLetra() {
     }
 
     // 4. Fallback
-    console.warn('⚠️ No se pudo detectar la letra. Usando "a" por defecto.');
+    console.warn('⚠️ No se pudo detectar la categoría. Usando "a" por defecto.');
     return 'a';
 }
 
@@ -74,7 +97,11 @@ const letraActual = detectarLetra();
 
 // ================= ACTUALIZAR TÍTULO DINÁMICAMENTE =================
 document.addEventListener('DOMContentLoaded', () => {
-    document.title = `Series - Letra ${letraActual.toUpperCase()}`;
+    let titulo;
+    if (letraActual === '0-9')      titulo = 'Series - Números (0-9)';
+    else if (letraActual === 'sym') titulo = 'Series - Símbolos';
+    else                            titulo = `Series - Letra ${letraActual.toUpperCase()}`;
+    document.title = titulo;
 });
 
 // ================= VARIABLES GLOBALES =================
@@ -138,6 +165,37 @@ function mostrarError(mensaje) {
 
 function ocultarError() {
     document.getElementById('errorContainer').style.display = 'none';
+}
+
+// ================= FILTRAR POR CATEGORÍA =================
+function filtrarPorCategoria(lista) {
+    // Detectar el primer carácter significativo del nombre
+    const obtenerPrimerCaracter = (str) => {
+        const limpio = (str || '').trim();
+        if (!limpio) return '';
+        // Buscar el primer carácter alfanumérico o símbolo real (ignora espacios)
+        for (const ch of limpio) {
+            if (ch.trim() === '') continue; // saltar espacios
+            return ch;
+        }
+        return '';
+    };
+
+    if (letraActual === '0-9') {
+        // Series que empiezan con dígito 0-9
+        return lista.filter(s => /^[0-9]/.test(obtenerPrimerCaracter(s.id)));
+    }
+
+    if (letraActual === 'sym') {
+        // Series que empiezan con un símbolo (NO letra, NO número, NO espacio)
+        return lista.filter(s => {
+            const ch = obtenerPrimerCaracter(s.id);
+            return ch && !/[a-z0-9ñ]/i.test(ch);
+        });
+    }
+
+    // Letra normal (incluye ñ)
+    return lista.filter(s => obtenerPrimerCaracter(s.id).toLowerCase() === letraActual);
 }
 
 // ================= FUNCIONES DE OBTENCIÓN DE DATOS =================
@@ -302,8 +360,7 @@ async function cargarDesdeFirebase() {
     inicializarFirebase();
     const snapshot = await db.collection("animes-series-indice").get();
     todas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    series = todas.filter(serie => serie.id.toLowerCase().startsWith(letraActual));
-    pagina = 0;
+    series = filtrarPorCategoria(todas);    pagina = 0;
     actualizarSelector();
     mostrarPagina();
 }
@@ -320,8 +377,7 @@ async function cargarDesdeCloudflare() {
         imagen: item.imagen,
         sitio: item.sitio
     }));
-    series = todas.filter(serie => serie.id.toLowerCase().startsWith(letraActual));
-    pagina = 0;
+    series = filtrarPorCategoria(todas);    pagina = 0;
     actualizarSelector();
     mostrarPagina();
 }
@@ -341,8 +397,7 @@ async function cargarDesdeSQLServer() {
         imagen: item.imagen,
         sitio: item.sitio
     }));
-    series = todas.filter(serie => serie.id.toLowerCase().startsWith(letraActual));
-    pagina = 0;
+    series = filtrarPorCategoria(todas);    pagina = 0;
     actualizarSelector();
     mostrarPagina();
     console.log(`✅ Cargadas ${series.length} series desde SQL Server (letra ${letraActual.toUpperCase()})`);
@@ -360,8 +415,7 @@ async function cargarDesdeGoogleSheets() {
         imagen: item.imagen,
         sitio: item.sitio
     }));
-    series = todas.filter(serie => serie.id.toLowerCase().startsWith(letraActual));
-    pagina = 0;
+    series = filtrarPorCategoria(todas);    pagina = 0;
     actualizarSelector();
     mostrarPagina();
     console.log(`Cargadas ${series.length} series desde Google Sheets (letra ${letraActual.toUpperCase()})`);
@@ -370,7 +424,12 @@ async function cargarDesdeGoogleSheets() {
 // ================= ACTUALIZAR SELECTOR =================
 function actualizarSelector() {
     const nombreSelector = document.getElementById("nombreSelector");
-    let opciones = `<option value="">Todas las series con la letra "${letraActual.toUpperCase()}" (${series.length})</option>`;
+    let etiqueta;
+    if (letraActual === '0-9')      etiqueta = 'Números (0-9)';
+    else if (letraActual === 'sym') etiqueta = 'Símbolos';
+    else                            etiqueta = `Letra "${letraActual.toUpperCase()}"`;
+
+    let opciones = `<option value="">Todas las series con ${etiqueta} (${series.length})</option>`;
     opciones += series.map(s => `<option value="${s.id}">${s.id}</option>`).join('');
     nombreSelector.innerHTML = opciones;
     nombreSelector.selectedIndex = 0;
