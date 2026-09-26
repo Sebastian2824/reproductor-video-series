@@ -111,7 +111,7 @@ let db;
 let series = [];
 let todas = [];
 let pagina = 0;
-const porPagina = 10;
+const porPagina = 4;
 
 // ================= INICIALIZAR FIREBASE =================
 function inicializarFirebase() {
